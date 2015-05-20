@@ -1146,48 +1146,61 @@ bool Player::Create(ObjectGuid::LowType guidlow, WorldPackets::Character::Charac
         ab.SetActionAndType(action_itr->action, ActionButtonType(action_itr->type));
     }
 
-    // original items
-    if (CharStartOutfitEntry const* oEntry = GetCharStartOutfitEntry(createInfo->Race, createInfo->Class, createInfo->Sex))
+    bool loadOriginalItems = true;
+
+    if (createInfo->TemplateSet.HasValue)
     {
-        for (int j = 0; j < MAX_OUTFIT_ITEMS; ++j)
+        if (CharacterTemplateItems const* templateItems = sObjectMgr->GetCharacterTemplate(createInfo->TemplateSet.Value)->GetTemplateItems(createInfo->Race, createInfo->Class, createInfo->Sex))
         {
-            if (oEntry->ItemID[j] <= 0)
-                continue;
+            loadOriginalItems = false;
+        }
+    }
 
-            uint32 itemId = oEntry->ItemID[j];
-
-            // just skip, reported in ObjectMgr::LoadItemTemplates
-            ItemTemplate const* iProto = sObjectMgr->GetItemTemplate(itemId);
-            if (!iProto)
-                continue;
-
-            // BuyCount by default
-            uint32 count = iProto->GetBuyCount();
-
-            // special amount for food/drink
-            if (iProto->GetClass() == ITEM_CLASS_CONSUMABLE && iProto->GetSubClass() == ITEM_SUBCLASS_FOOD_DRINK)
+    // original items
+    if (loadOriginalItems)
+    {
+        if (CharStartOutfitEntry const* oEntry = GetCharStartOutfitEntry(createInfo->Race, createInfo->Class, createInfo->Sex))
+        {
+            for (int j = 0; j < MAX_OUTFIT_ITEMS; ++j)
             {
-                if (iProto->Effects.size() >= 1)
+                if (oEntry->ItemID[j] <= 0)
+                    continue;
+
+                uint32 itemId = oEntry->ItemID[j];
+
+                // just skip, reported in ObjectMgr::LoadItemTemplates
+                ItemTemplate const* iProto = sObjectMgr->GetItemTemplate(itemId);
+                if (!iProto)
+                    continue;
+
+                // BuyCount by default
+                uint32 count = iProto->GetBuyCount();
+
+                // special amount for food/drink
+                if (iProto->GetClass() == ITEM_CLASS_CONSUMABLE && iProto->GetSubClass() == ITEM_SUBCLASS_FOOD_DRINK)
                 {
-                    switch (iProto->Effects[0]->Category)
+                    if (iProto->Effects.size() >= 1)
                     {
+                        switch (iProto->Effects[0]->Category)
+                        {
                         case SPELL_CATEGORY_FOOD:                                // food
                             count = getClass() == CLASS_DEATH_KNIGHT ? 10 : 4;
                             break;
                         case SPELL_CATEGORY_DRINK:                                // drink
                             count = 2;
                             break;
+                        }
                     }
+                    if (iProto->GetMaxStackSize() < count)
+                        count = iProto->GetMaxStackSize();
                 }
-                if (iProto->GetMaxStackSize() < count)
-                    count = iProto->GetMaxStackSize();
+                StoreNewItemInBestSlots(itemId, count);
             }
-            StoreNewItemInBestSlots(itemId, count);
         }
-    }
 
-    for (PlayerCreateInfoItems::const_iterator item_id_itr = info->item.begin(); item_id_itr != info->item.end(); ++item_id_itr)
-        StoreNewItemInBestSlots(item_id_itr->item_id, item_id_itr->item_amount);
+        for (PlayerCreateInfoItems::const_iterator item_id_itr = info->item.begin(); item_id_itr != info->item.end(); ++item_id_itr)
+            StoreNewItemInBestSlots(item_id_itr->item_id, item_id_itr->item_amount);
+    }
 
     // bags and main-hand weapon must equipped at this moment
     // now second pass for not equipped (offhand weapon/shield if it attempt equipped before main-hand weapon)

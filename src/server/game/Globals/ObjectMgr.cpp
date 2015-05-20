@@ -9181,7 +9181,35 @@ void ObjectMgr::LoadCharacterTemplates()
 
                 templ.Classes.emplace_back(factionGroup, classID);
 
-            } while (classes->NextRow());
+            } 
+            while (classes->NextRow());
+
+            PreparedQueryResult items;
+            stmt = CharacterDatabase.GetPreparedStatement(CHAR_SEL_CHARACTER_TEMPLATE_ITEMS);
+            stmt->setUInt32(0, templateSetId);
+            items = CharacterDatabase.Query(stmt);
+
+            if (items)
+            {
+                do
+                {
+                    fields = items->Fetch();
+                    uint8 idx = 0;
+
+                    uint8 race = fields[idx].GetUInt8();
+                    uint8 class_ = fields[++idx].GetUInt8();
+                    uint8 gender = fields[++idx].GetUInt8();
+                    
+                    CharacterTemplateItems items;
+
+                    for (uint8 i = 0; i < MAX_OUTFIT_ITEMS; ++i)
+                        items.Items[i] = fields[++idx].GetUInt32();
+
+                    templ.Items[race | (class_ << 8) | (gender << 16)] = items;
+                } 
+                while (items->NextRow());
+            }
+            
 
             if (!templ.Classes.empty())
             {
@@ -9194,7 +9222,8 @@ void ObjectMgr::LoadCharacterTemplates()
             TC_LOG_ERROR("sql.sql", "Character template %u does not have any classes defined in `character_template_class`. Skipped.", templateSetId);
             continue;
         }
-    } while (templates->NextRow());
+    } 
+    while (templates->NextRow());
     TC_LOG_INFO("server.loading", ">> Loaded %u character templates in %u ms.", count, GetMSTimeDiffToNow(oldMSTime));
 }
 

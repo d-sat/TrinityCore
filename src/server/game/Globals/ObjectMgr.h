@@ -606,6 +606,11 @@ struct CharcterTemplateClass
     uint8 ClassID;
 };
 
+struct CharacterTemplateItems
+{
+    uint32 Items[MAX_OUTFIT_ITEMS];
+};
+
 struct CharacterTemplate
 {
     uint32 TemplateSetId;
@@ -613,6 +618,17 @@ struct CharacterTemplate
     std::string Name;
     std::string Description;
     uint8 Level;
+
+    std::unordered_map<uint32, CharacterTemplateItems> Items;
+
+    CharacterTemplateItems const* GetTemplateItems(uint8 race, uint8 class_, uint8 sex) const
+    {
+        auto itr = Items.find(race | (class_ << 8) | (sex << 16));
+        if (itr == Items.end())
+            return nullptr;
+
+        return &itr->second;
+    }
 };
 
 typedef std::unordered_map<uint32, CharacterTemplate> CharacterTemplateContainer;

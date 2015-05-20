@@ -70,6 +70,9 @@ void CharacterDatabaseConnection::DoPrepareStatements()
     PrepareStatement(CHAR_SEL_CHAR_POSITION, "SELECT position_x, position_y, position_z, orientation, map, taxi_path FROM characters WHERE guid = ?", CONNECTION_SYNCH);
     PrepareStatement(CHAR_SEL_CHARACTER_TEMPLATES, "SELECT id, name, description, level FROM character_template", CONNECTION_SYNCH);
     PrepareStatement(CHAR_SEL_CHARACTER_TEMPLATE_CLASSES, "SELECT factionGroup, class FROM character_template_class WHERE templateId = ?", CONNECTION_SYNCH);
+    PrepareStatement(CHAR_SEL_CHARACTER_TEMPLATE_ITEMS, "SELECT race, class, gender, "
+                    "itemId1, itemId2, itemId3, itemId4, itemId5, itemId6, itemId7, itemId8, itemId9, itemId10, itemId11, itemId12, itemId13, itemId14, itemId15, "
+                    "itemId16, itemId17, itemId18, itemId19, itemId20, itemId21, itemId22, itemId23, itemId24 FROM character_template_item WHERE templateId = ?", CONNECTION_SYNCH);
 
     PrepareStatement(CHAR_DEL_BATTLEGROUND_RANDOM_ALL, "DELETE FROM character_battleground_random", CONNECTION_ASYNC);
     PrepareStatement(CHAR_DEL_BATTLEGROUND_RANDOM, "DELETE FROM character_battleground_random WHERE guid = ?", CONNECTION_ASYNC);
