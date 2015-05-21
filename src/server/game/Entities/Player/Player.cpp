@@ -1148,13 +1148,10 @@ bool Player::Create(ObjectGuid::LowType guidlow, WorldPackets::Character::Charac
 
     bool loadOriginalItems = true;
 
-    if (createInfo->TemplateSet.HasValue)
-    {
-        if (CharacterTemplateItems const* templateItems = sObjectMgr->GetCharacterTemplate(createInfo->TemplateSet.Value)->GetTemplateItems(createInfo->Race, createInfo->Class, createInfo->Sex))
-        {
-            loadOriginalItems = false;
-        }
-    }
+    if (createInfo->TemplateSet)
+        if (CharacterTemplate const* templ = sObjectMgr->GetCharacterTemplate(*createInfo->TemplateSet))
+            if (CharacterTemplateItems const* templateItems = templ->GetTemplateItems(createInfo->Race, createInfo->Class, createInfo->Sex))
+                loadOriginalItems = false;
 
     // original items
     if (loadOriginalItems)
