@@ -160,7 +160,7 @@ class TC_GAME_API BfGraveyard
         TeamId GetControlTeamId() const { return m_ControlTeam; }
 
         // Find the nearest graveyard to a player
-        float GetDistance(Player* player);
+        float GetDistance(Player* player) const;
 
         // Initialize the graveyard
         void Initialize(TeamId startcontrol, uint32 gy);

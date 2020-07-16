@@ -25,7 +25,7 @@
 #endif
 
 AppenderConsole::AppenderConsole(uint8 id, std::string const& name, LogLevel level, AppenderFlags flags, std::vector<char const*> extraArgs)
-    : Appender(id, name, level, flags), _colored(false)
+    : Appender(id, name, level, flags), _colored(false), _colors()
 {
     for (ColorTypes& color : _colors)
         color = MAX_COLORS;

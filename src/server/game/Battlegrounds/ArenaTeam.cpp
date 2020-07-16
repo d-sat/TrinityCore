@@ -749,9 +749,9 @@ void ArenaTeam::FinishGame(int32 mod)
         Stats.Rating += mod;
 
         // Check if rating related achivements are met
-        for (ArenaTeamMember& rember : Members)
-            if (Player* member = ObjectAccessor::FindConnectedPlayer(rember.Guid))
-                member->UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_HIGHEST_TEAM_RATING, Stats.Rating, Type);
+        for (ArenaTeamMember& member : Members)
+            if (Player* player = ObjectAccessor::FindConnectedPlayer(member.Guid))
+                player->UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_HIGHEST_TEAM_RATING, Stats.Rating, Type);
     }
 
     // Update number of games played per season or week

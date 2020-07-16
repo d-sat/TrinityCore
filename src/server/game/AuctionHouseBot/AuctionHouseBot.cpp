@@ -479,8 +479,7 @@ void AuctionHouseBot::PrepareStatusInfos(AuctionHouseBotStatusInfo& statusInfo)
     {
         statusInfo[i].ItemsCount = 0;
 
-        for (uint32& j : statusInfo[i].QualityInfo)
-            j = 0;
+        std::fill(std::begin(statusInfo[i].QualityInfo), std::end(statusInfo[i].QualityInfo), 0);
 
         AuctionHouseObject* auctionHouse = sAuctionMgr->GetAuctionsMap(AuctionHouseType(i));
         for (AuctionHouseObject::AuctionEntryMap::const_iterator itr = auctionHouse->GetAuctionsBegin(); itr != auctionHouse->GetAuctionsEnd(); ++itr)

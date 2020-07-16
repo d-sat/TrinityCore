@@ -161,16 +161,16 @@ void ArenaTeamMgr::DistributeArenaPoints()
     CharacterDatabasePreparedStatement* stmt;
 
     // Cycle that gives points to all players
-    for (std::pair<uint32 const, uint32>& PlayerPoint : PlayerPoints)
+    for (std::pair<uint32 const, uint32>& playerPoint : PlayerPoints)
     {
         // Add points to player if online
-        if (Player* player = ObjectAccessor::FindConnectedPlayer(ObjectGuid(HighGuid::Player, PlayerPoint.first)))
-            player->ModifyArenaPoints(PlayerPoint.second, trans);
+        if (Player* player = ObjectAccessor::FindConnectedPlayer(ObjectGuid(HighGuid::Player, playerPoint.first)))
+            player->ModifyArenaPoints(playerPoint.second, trans);
         else    // Update database
         {
             stmt = CharacterDatabase.GetPreparedStatement(CHAR_UPD_ADD_CHAR_ARENA_POINTS);
-            stmt->setUInt32(0, PlayerPoint.second);
-            stmt->setUInt32(1, PlayerPoint.first);
+            stmt->setUInt32(0, playerPoint.second);
+            stmt->setUInt32(1, playerPoint.first);
             trans->Append(stmt);
         }
     }

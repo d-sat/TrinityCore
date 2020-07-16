@@ -603,12 +603,12 @@ void BattlefieldWG::OnBattleStart()
     for (WintergraspWorkshop* workshop : Workshops)
         workshop->UpdateGraveyardAndWorkshop();
 
-    for (GuidUnorderedSet& players : m_players)
+    for (GuidUnorderedSet const& teamPlayers : m_players)
     {
-        for (auto itr = players.begin(); itr != players.end(); ++itr)
+        for (ObjectGuid guid : teamPlayers)
         {
             // Kick player in orb room, TODO: offline player ?
-            if (Player* player = ObjectAccessor::FindPlayer(*itr))
+            if (Player* player = ObjectAccessor::FindPlayer(guid))
             {
                 float x, y, z;
                 player->GetPosition(x, y, z);
@@ -738,9 +738,9 @@ void BattlefieldWG::OnBattleEnd(bool endByTimer)
 
     if (!endByTimer)
     {
-        for (GuidUnorderedSet& players : m_players)
+        for (GuidUnorderedSet const& teamPlayers : m_players)
         {
-            for (ObjectGuid guid : players)
+            for (ObjectGuid guid : teamPlayers)
             {
                 if (Player* player = ObjectAccessor::FindPlayer(guid))
                 {
@@ -1179,9 +1179,9 @@ void BattlefieldWG::FillInitialWorldStates(WorldPackets::WorldState::InitWorldSt
 
 void BattlefieldWG::SendInitWorldStatesToAll()
 {
-    for (GuidUnorderedSet& players : m_players)
-        for (auto itr = players.begin(); itr != players.end(); ++itr)
-            if (Player* player = ObjectAccessor::FindPlayer(*itr))
+    for (GuidUnorderedSet const& teamPlayers : m_players)
+        for (ObjectGuid guid : teamPlayers)
+            if (Player* player = ObjectAccessor::FindPlayer(guid))
                 SendInitWorldStatesTo(player);
 }
 

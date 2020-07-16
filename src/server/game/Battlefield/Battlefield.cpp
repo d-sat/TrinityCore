@@ -166,23 +166,23 @@ bool Battlefield::Update(uint32 diff)
         if (m_uiKickDontAcceptTimer <= diff)
         {
             time_t now = GameTime::GetGameTime();
-            for (PlayerTimerMap& m_InvitedPlayer : m_InvitedPlayers)
-                for (PlayerTimerMap::iterator itr = m_InvitedPlayer.begin(); itr != m_InvitedPlayer.end(); ++itr)
-                    if (itr->second <= now)
-                        KickPlayerFromBattlefield(itr->first);
+            for (PlayerTimerMap const& teamPlayers : m_InvitedPlayers)
+                for (std::pair<ObjectGuid, time_t> player : teamPlayers)
+                    if (player.second <= now)
+                        KickPlayerFromBattlefield(player.first);
 
             InvitePlayersInZoneToWar();
-            for (PlayerTimerMap& team : m_PlayersWillBeKick)
-                for (PlayerTimerMap::iterator itr = team.begin(); itr != team.end(); ++itr)
-                    if (itr->second <= now)
-                        KickPlayerFromBattlefield(itr->first);
+            for (PlayerTimerMap const& teamPlayers : m_PlayersWillBeKick)
+                for (std::pair<ObjectGuid, time_t> player : teamPlayers)
+                    if (player.second <= now)
+                        KickPlayerFromBattlefield(player.first);
 
             m_uiKickDontAcceptTimer = 1000;
         }
         else
             m_uiKickDontAcceptTimer -= diff;
 
-        for (std::pair<ObjectGuid::LowType const, BfCapturePoint*>& capturePoint : m_capturePoints)
+        for (std::pair<ObjectGuid::LowType const, BfCapturePoint*> const& capturePoint : m_capturePoints)
             if (capturePoint.second->Update(diff))
                 objective_changed = true;
     }
@@ -203,9 +203,9 @@ bool Battlefield::Update(uint32 diff)
 
 void Battlefield::InvitePlayersInZoneToQueue()
 {
-    for (GuidUnorderedSet& player : m_players)
-        for (auto itr = player.begin(); itr != player.end(); ++itr)
-            if (Player* player = ObjectAccessor::FindPlayer(*itr))
+    for (GuidUnorderedSet const& teamPlayers : m_players)
+        for (ObjectGuid guid : teamPlayers)
+            if (Player* player = ObjectAccessor::FindPlayer(guid))
                 InvitePlayerToQueue(player);
 }
 
@@ -220,9 +220,9 @@ void Battlefield::InvitePlayerToQueue(Player* player)
 
 void Battlefield::InvitePlayersInQueueToWar()
 {
-    for (GuidUnorderedSet& teamset : m_PlayersInQueue)
+    for (GuidUnorderedSet& teamPlayers : m_PlayersInQueue)
     {
-        for (ObjectGuid guid : teamset)
+        for (ObjectGuid guid : teamPlayers)
         {
             if (Player* player = ObjectAccessor::FindPlayer(guid))
             {
@@ -234,15 +234,15 @@ void Battlefield::InvitePlayersInQueueToWar()
                 }
             }
         }
-        teamset.clear();
+        teamPlayers.clear();
     }
 }
 
 void Battlefield::InvitePlayersInZoneToWar()
 {
-    for (GuidUnorderedSet& playerset : m_players)
+    for (GuidUnorderedSet const& teamPlayers : m_players)
     {
-        for (ObjectGuid guid : playerset)
+        for (ObjectGuid guid : teamPlayers)
         {
             if (Player* player = ObjectAccessor::FindPlayer(guid))
             {
@@ -299,8 +299,8 @@ void Battlefield::InitStalker(uint32 entry, Position const& pos)
 
 void Battlefield::KickAfkPlayers()
 {
-    for (GuidUnorderedSet& teamset : m_PlayersInWar)
-        for (ObjectGuid guid : teamset)
+    for (GuidUnorderedSet const& teamPlayers : m_PlayersInWar)
+        for (ObjectGuid guid : teamPlayers)
             if (Player* player = ObjectAccessor::FindPlayer(guid))
                 if (player->isAFK())
                     KickPlayerFromBattlefield(guid);
@@ -423,24 +423,24 @@ void Battlefield::TeamCastSpell(TeamId team, int32 spellId)
 
 void Battlefield::BroadcastPacketToZone(WorldPacket const* data) const
 {
-    for (GuidUnorderedSet const& playerset : m_players)
-        for (ObjectGuid guid : playerset)
+    for (GuidUnorderedSet const& teamPlayers : m_players)
+        for (ObjectGuid guid : teamPlayers)
             if (Player* player = ObjectAccessor::FindPlayer(guid))
                 player->SendDirectMessage(data);
 }
 
 void Battlefield::BroadcastPacketToQueue(WorldPacket const* data) const
 {
-    for (GuidUnorderedSet const& teamset : m_PlayersInQueue)
-        for (ObjectGuid guid : teamset)
+    for (GuidUnorderedSet const& teamPlayers : m_PlayersInQueue)
+        for (ObjectGuid guid : teamPlayers)
             if (Player* player = ObjectAccessor::FindConnectedPlayer(guid))
                 player->SendDirectMessage(data);
 }
 
 void Battlefield::BroadcastPacketToWar(WorldPacket const* data) const
 {
-    for (GuidUnorderedSet const& teamset : m_PlayersInWar)
-        for (ObjectGuid guid : teamset)
+    for (GuidUnorderedSet const& teamPlayers : m_PlayersInWar)
+        for (ObjectGuid guid : teamPlayers)
             if (Player* player = ObjectAccessor::FindPlayer(guid))
                 player->SendDirectMessage(data);
 }
@@ -464,8 +464,8 @@ void Battlefield::SendInitWorldStatesTo(Player* player)
 
 void Battlefield::SendUpdateWorldState(uint32 field, uint32 value)
 {
-    for (GuidUnorderedSet const& playerset : m_players)
-        for (ObjectGuid guid : playerset)
+    for (GuidUnorderedSet const& teamPlayers : m_players)
+        for (ObjectGuid guid : teamPlayers)
             if (Player* player = ObjectAccessor::FindPlayer(guid))
                 player->SendUpdateWorldState(field, value);
 }
@@ -578,9 +578,9 @@ BfGraveyard* Battlefield::GetGraveyardById(uint32 id) const
 
 WorldSafeLocsEntry const* Battlefield::GetClosestGraveyard(Player* player)
 {
-    BfGraveyard* closestGY = nullptr;
+    BfGraveyard const* closestGY = nullptr;
     float maxdist = -1;
-    for (BfGraveyard* graveyard : m_GraveyardList)
+    for (BfGraveyard const* graveyard : m_GraveyardList)
     {
         if (graveyard)
         {
@@ -669,7 +669,7 @@ void BfGraveyard::SetSpirit(Creature* spirit, TeamId team)
     spirit->SetReactState(REACT_PASSIVE);
 }
 
-float BfGraveyard::GetDistance(Player* player)
+float BfGraveyard::GetDistance(Player* player) const
 {
     WorldSafeLocsEntry const* safeLoc = sWorldSafeLocsStore.LookupEntry(m_GraveyardId);
     return player->GetDistance2d(safeLoc->Loc.X, safeLoc->Loc.Y);
@@ -882,7 +882,7 @@ GuidSet::iterator BfCapturePoint::HandlePlayerLeave(Player* player)
         if (GameObject* capturePoint = m_Bf->GetGameObject(m_capturePointGUID))
             player->SendUpdateWorldState(capturePoint->GetGOInfo()->capturePoint.worldState1, 0);
 
-    GuidSet::iterator current = m_activePlayers[player->GetTeamId()].find(player->GetGUID());
+    auto current = m_activePlayers[player->GetTeamId()].find(player->GetGUID());
 
     if (current == m_activePlayers[player->GetTeamId()].end())
         return current; // return end()
@@ -973,9 +973,9 @@ bool BfCapturePoint::Update(uint32 diff)
     {
         float radius = capturePoint->GetGOInfo()->capturePoint.radius;
 
-        for (GuidSet& m_activePlayer : m_activePlayers)
+        for (GuidSet& teamPlayers : m_activePlayers)
         {
-            for (GuidSet::iterator itr = m_activePlayer.begin(); itr != m_activePlayer.end();)
+            for (auto itr = teamPlayers.begin(); itr != teamPlayers.end();)
             {
                 if (Player* player = ObjectAccessor::FindPlayer(*itr))
                 {
@@ -1088,8 +1088,8 @@ bool BfCapturePoint::Update(uint32 diff)
 
 void BfCapturePoint::SendUpdateWorldState(uint32 field, uint32 value)
 {
-    for (GuidSet& activePlayers : m_activePlayers)
-        for (ObjectGuid guid : activePlayers)  // send to all players present in the area
+    for (GuidSet const& teamPlayers : m_activePlayers)
+        for (ObjectGuid guid : teamPlayers)  // send to all players present in the area
             if (Player* player = ObjectAccessor::FindPlayer(guid))
                 player->SendUpdateWorldState(field, value);
 }
