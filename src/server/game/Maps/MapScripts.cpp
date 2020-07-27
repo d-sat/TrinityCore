@@ -627,7 +627,7 @@ void Map::ScriptsProcess()
                     // Check that GO is not spawned
                     if (!pGO->isSpawned())
                     {
-                        int32 nTimeToDespawn = std::max(5, int32(step.script->RespawnGameobject.DespawnDelay));
+                        Seconds nTimeToDespawn = std::max(5s, Seconds(step.script->RespawnGameobject.DespawnDelay));
                         pGO->SetLootState(GO_READY);
                         pGO->SetRespawnTime(nTimeToDespawn);
 

@@ -473,7 +473,7 @@ public:
             {
                 if (GameObject* go = me->FindNearestGameObject(GO_CAGE, 5.0f))
                 {
-                    go->SetRespawnTime(0);
+                    go->SetRespawnTime(0s);
                     go->UseDoorOrButton(20000);
                 }
 

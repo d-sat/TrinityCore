@@ -197,7 +197,7 @@ bool OPvPCapturePoint::DelCapturePoint()
 
     if (m_capturePoint)
     {
-        m_capturePoint->SetRespawnTime(0);                                 // not save respawn time
+        m_capturePoint->SetRespawnTime(0s);                                 // not save respawn time
         m_capturePoint->Delete();
     }
 

@@ -3379,9 +3379,9 @@ void Spell::EffectSummonObjectWild(SpellEffIndex effIndex)
         return;
     }
 
-    int32 duration = m_spellInfo->GetDuration();
+    Milliseconds duration = Milliseconds(m_spellInfo->GetDuration());
 
-    pGameObj->SetRespawnTime(duration > 0 ? duration/IN_MILLISECONDS : 0);
+    pGameObj->SetRespawnTime(duration > 0s ? std::chrono::duration_cast<Seconds>(duration) : 0s);
     pGameObj->SetSpellId(m_spellInfo->Id);
 
     ExecuteLogEffectSummonObject(effIndex, pGameObj);
@@ -3396,7 +3396,7 @@ void Spell::EffectSummonObjectWild(SpellEffIndex effIndex)
 
     if (GameObject* linkedTrap = pGameObj->GetLinkedTrap())
     {
-        linkedTrap->SetRespawnTime(duration > 0 ? duration / IN_MILLISECONDS : 0);
+        linkedTrap->SetRespawnTime(duration > 0s ? std::chrono::duration_cast<Seconds>(duration) : 0s);
         linkedTrap->SetSpellId(m_spellInfo->Id);
 
         ExecuteLogEffectSummonObject(effIndex, linkedTrap);
@@ -3645,8 +3645,8 @@ void Spell::EffectDuel(SpellEffIndex effIndex)
 
     pGameObj->SetFaction(caster->GetFaction());
     pGameObj->SetUInt32Value(GAMEOBJECT_LEVEL, caster->GetLevel() + 1);
-    int32 duration = m_spellInfo->GetDuration();
-    pGameObj->SetRespawnTime(duration > 0 ? duration/IN_MILLISECONDS : 0);
+    Milliseconds duration = Milliseconds(m_spellInfo->GetDuration());
+    pGameObj->SetRespawnTime(duration > 0s ? std::chrono::duration_cast<Seconds>(duration) : 0s);
     pGameObj->SetSpellId(m_spellInfo->Id);
 
     ExecuteLogEffectSummonObject(effIndex, pGameObj);
@@ -4053,8 +4053,8 @@ void Spell::EffectSummonObject(SpellEffIndex effIndex)
 
     go->SetFaction(unitCaster->GetFaction());
     go->SetUInt32Value(GAMEOBJECT_LEVEL, unitCaster->GetLevel());
-    int32 duration = m_spellInfo->GetDuration();
-    go->SetRespawnTime(duration > 0 ? duration / IN_MILLISECONDS : 0);
+    Milliseconds duration = Milliseconds(m_spellInfo->GetDuration());
+    go->SetRespawnTime(duration > 0s ? std::chrono::duration_cast<Seconds>(duration) : 0s);
     go->SetSpellId(m_spellInfo->Id);
     unitCaster->AddGameObject(go);
 
@@ -4768,7 +4768,7 @@ void Spell::EffectTransmitted(SpellEffIndex effIndex)
         return;
     }
 
-    int32 duration = m_spellInfo->GetDuration();
+    Milliseconds duration = Milliseconds(m_spellInfo->GetDuration());
     switch (goinfo->type)
     {
         case GAMEOBJECT_TYPE_FISHINGNODE:
@@ -4778,16 +4778,16 @@ void Spell::EffectTransmitted(SpellEffIndex effIndex)
 
             // end time of range when possible catch fish (FISHING_BOBBER_READY_TIME..GetDuration(m_spellInfo))
             // start time == fish-FISHING_BOBBER_READY_TIME (0..GetDuration(m_spellInfo)-FISHING_BOBBER_READY_TIME)
-            int32 lastSec = 0;
+            Seconds lastSec = 0s;
             switch (urand(0, 2))
             {
-                case 0: lastSec =  3; break;
-                case 1: lastSec =  7; break;
-                case 2: lastSec = 13; break;
+                case 0: lastSec =  3s; break;
+                case 1: lastSec =  7s; break;
+                case 2: lastSec = 13s; break;
             }
 
             // Duration of the fishing bobber can't be higher than the Fishing channeling duration
-            duration = std::min(duration, duration - lastSec*IN_MILLISECONDS + FISHING_BOBBER_READY_TIME*IN_MILLISECONDS);
+            duration = std::min(duration, duration - lastSec + FISHING_BOBBER_READY_TIME);
             break;
         }
         case GAMEOBJECT_TYPE_SUMMONING_RITUAL:
@@ -4808,7 +4808,7 @@ void Spell::EffectTransmitted(SpellEffIndex effIndex)
             break;
     }
 
-    pGameObj->SetRespawnTime(duration > 0 ? duration/IN_MILLISECONDS : 0);
+    pGameObj->SetRespawnTime(duration > 0s ? std::chrono::duration_cast<Seconds>(duration) : 0s);
 
     pGameObj->SetOwnerGUID(unitCaster->GetGUID());
 
@@ -4825,7 +4825,7 @@ void Spell::EffectTransmitted(SpellEffIndex effIndex)
 
     if (GameObject* linkedTrap = pGameObj->GetLinkedTrap())
     {
-        linkedTrap->SetRespawnTime(duration > 0 ? duration/IN_MILLISECONDS : 0);
+        linkedTrap->SetRespawnTime(duration > 0s ? std::chrono::duration_cast<Seconds>(duration) : 0s);
         //linkedTrap->SetUInt32Value(GAMEOBJECT_LEVEL, unitCaster->GetLevel());
         linkedTrap->SetSpellId(m_spellInfo->Id);
         linkedTrap->SetOwnerGUID(unitCaster->GetGUID());

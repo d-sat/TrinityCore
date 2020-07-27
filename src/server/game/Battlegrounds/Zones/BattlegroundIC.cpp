@@ -374,7 +374,7 @@ bool BattlegroundIC::SetupBattleground()
 
     // correcting spawn time for keeps bombs
     for (uint8 i = BG_IC_GO_HUGE_SEAFORIUM_BOMBS_A_1; i < BG_IC_GO_HUGE_SEAFORIUM_BOMBS_H_4; ++i)
-        GetBGObject(i)->SetRespawnTime(10);
+        GetBGObject(i)->SetRespawnTime(10s);
 
     return true;
 }
@@ -783,7 +783,7 @@ void BattlegroundIC::HandleCapturedNodes(ICNodePoint* node, bool recapture)
 
                     if (GameObject* seaforiumBombs = GetBGObject(BG_IC_GO_SEAFORIUM_BOMBS_1+i))
                     {
-                        seaforiumBombs->SetRespawnTime(10);
+                        seaforiumBombs->SetRespawnTime(10s);
                         seaforiumBombs->SetFaction(BG_IC_Factions[(node->faction == TEAM_ALLIANCE ? 0 : 1)]);
                     }
                 }

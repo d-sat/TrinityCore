@@ -1151,7 +1151,7 @@ class spell_q9452_cast_net: public SpellScriptLoader
             void HandleActiveObject(SpellEffIndex effIndex)
             {
                 PreventHitDefaultEffect(effIndex);
-                GetHitGObj()->SetRespawnTime(roll_chance_i(50) ? 2 * MINUTE : 3 * MINUTE);
+                GetHitGObj()->SetRespawnTime(roll_chance_i(50) ? 2min : 3min);
                 GetHitGObj()->Use(GetCaster());
                 GetHitGObj()->SetLootState(GO_JUST_DEACTIVATED);
             }

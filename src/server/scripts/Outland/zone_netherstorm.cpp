@@ -493,7 +493,7 @@ class go_captain_tyralius_prison : public GameObjectScript
 
             bool GossipHello(Player* player) override
             {
-                me->SetRespawnTime(60);
+                me->SetRespawnTime(60s);
                 me->SetLootState(GO_JUST_DEACTIVATED);
 
                 if (Creature* tyralius = me->FindNearestCreature(NPC_CAPTAIN_TYRALIUS, 1.0f))

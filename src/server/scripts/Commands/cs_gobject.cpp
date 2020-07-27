@@ -167,7 +167,7 @@ public:
 
         if (spawntimeSecs)
         {
-            int32 value = atoi((char*)spawntimeSecs);
+            Seconds value = Seconds(atoi(spawntimeSecs));
             object->SetRespawnTime(value);
         }
 
@@ -338,7 +338,7 @@ public:
                 curRespawnDelay = 0;
 
             std::string curRespawnDelayStr = secsToTimeString(curRespawnDelay, TimeFormat::ShortText);
-            std::string defRespawnDelayStr = secsToTimeString(target->GetRespawnDelay(), TimeFormat::ShortText);
+            std::string defRespawnDelayStr = secsToTimeString(target->GetRespawnDelay().count(), TimeFormat::ShortText);
 
             handler->PSendSysMessage(LANG_COMMAND_RAWPAWNTIMES, defRespawnDelayStr.c_str(), curRespawnDelayStr.c_str());
         }

@@ -74,7 +74,7 @@ enum LootState
 };
 
 // 5 sec for bobber catch
-#define FISHING_BOBBER_READY_TIME 5
+static constexpr Seconds FISHING_BOBBER_READY_TIME = 5s;
 
 class TC_GAME_API GameObject : public WorldObject, public GridObject<GameObject>, public MapObject
 {
@@ -141,7 +141,7 @@ class TC_GAME_API GameObject : public WorldObject, public GridObject<GameObject>
         time_t GetRespawnTime() const { return m_respawnTime; }
         time_t GetRespawnTimeEx() const;
 
-        void SetRespawnTime(int32 respawn);
+        void SetRespawnTime(Seconds respawn);
         void Respawn();
         bool isSpawned() const
         {
@@ -151,7 +151,7 @@ class TC_GAME_API GameObject : public WorldObject, public GridObject<GameObject>
         }
         bool isSpawnedByDefault() const { return m_spawnedByDefault; }
         void SetSpawnedByDefault(bool b) { m_spawnedByDefault = b; }
-        uint32 GetRespawnDelay() const { return m_respawnDelayTime; }
+        Seconds GetRespawnDelay() const { return Seconds(m_respawnDelayTime); }
         void Refresh();
         void DespawnOrUnsummon(Milliseconds delay = 0ms, Seconds forceRespawnTime = 0s);
         void Delete();

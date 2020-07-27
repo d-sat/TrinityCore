@@ -483,7 +483,7 @@ class go_sapphiron_birth : public GameObjectScript
                 }
                 else if (state == GO_JUST_DEACTIVATED)
                 { // prevent ourselves from going back to _READY and resetting the client anim
-                    me->SetRespawnTime(0);
+                    me->SetRespawnTime(0s);
                     me->Delete();
                 }
             }

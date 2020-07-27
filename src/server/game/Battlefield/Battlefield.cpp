@@ -954,7 +954,7 @@ bool BfCapturePoint::DelCapturePoint()
     {
         if (GameObject* capturePoint = m_Bf->GetGameObject(m_capturePointGUID))
         {
-            capturePoint->SetRespawnTime(0);                  // not save respawn time
+            capturePoint->SetRespawnTime(0s);                  // not save respawn time
             capturePoint->Delete();
             capturePoint = nullptr;
         }

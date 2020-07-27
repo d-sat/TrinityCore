@@ -862,7 +862,7 @@ public:
                             {
                                 if (GameObject* firework = me->SummonGameObject(FireworksBIGOnlyPicker(), rndpos, QuaternionData(0.f, 0.f, rndrot, rndrot2), 5min))
                                 {
-                                    firework->SetRespawnTime(0);
+                                    firework->SetRespawnTime(0s);
                                     firework->Delete();
                                 }
                             }
@@ -870,7 +870,7 @@ public:
                             {
                                 if (GameObject* firework = me->SummonGameObject(FireworksPicker(), rndpos, QuaternionData(0.f, 0.f, rndrot, rndrot2), 5min))
                                 {
-                                    firework->SetRespawnTime(0);
+                                    firework->SetRespawnTime(0s);
                                     firework->Delete();
                                 }
                             }

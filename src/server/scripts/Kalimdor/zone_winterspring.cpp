@@ -376,7 +376,7 @@ public:
                         if ((*itr)->isSpawned())
                             continue;
 
-                        (*itr)->SetRespawnTime(115);
+                        (*itr)->SetRespawnTime(115s);
                         (*itr)->Refresh();
                     }
 
@@ -418,7 +418,7 @@ public:
                         if (gem->isSpawned())
                             break;
 
-                        gem->SetRespawnTime(90);
+                        gem->SetRespawnTime(90s);
                         gem->Refresh();
                     }
                     break;

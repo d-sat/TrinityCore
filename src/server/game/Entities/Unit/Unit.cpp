@@ -2860,7 +2860,7 @@ void Unit::_UpdateSpells(uint32 time)
             if (!(*itr)->isSpawned())
             {
                 (*itr)->SetOwnerGUID(ObjectGuid::Empty);
-                (*itr)->SetRespawnTime(0);
+                (*itr)->SetRespawnTime(0s);
                 (*itr)->Delete();
                 m_gameObj.erase(itr++);
             }
@@ -5104,7 +5104,7 @@ void Unit::RemoveGameObject(GameObject* gameObj, bool del)
 
     if (del)
     {
-        gameObj->SetRespawnTime(0);
+        gameObj->SetRespawnTime(0s);
         gameObj->Delete();
     }
 }
@@ -5122,7 +5122,7 @@ void Unit::RemoveGameObject(uint32 spellid, bool del)
             (*i)->SetOwnerGUID(ObjectGuid::Empty);
             if (del)
             {
-                (*i)->SetRespawnTime(0);
+                (*i)->SetRespawnTime(0s);
                 (*i)->Delete();
             }
 
@@ -5140,7 +5140,7 @@ void Unit::RemoveAllGameObjects()
     {
         GameObjectList::iterator i = m_gameObj.begin();
         (*i)->SetOwnerGUID(ObjectGuid::Empty);
-        (*i)->SetRespawnTime(0);
+        (*i)->SetRespawnTime(0s);
         (*i)->Delete();
         m_gameObj.erase(i);
     }

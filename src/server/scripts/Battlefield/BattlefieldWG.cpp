@@ -530,13 +530,13 @@ bool BattlefieldWG::SetupBattlefield()
         if (GameObject* go = SpawnGameObject(teleporter.AllianceEntry, teleporter.Pos, teleporter.Rot))
         {
             DefenderPortalList[TEAM_ALLIANCE].push_back(go->GetGUID());
-            go->SetRespawnTime(GetDefenderTeam() == TEAM_ALLIANCE ? RESPAWN_IMMEDIATELY : RESPAWN_ONE_DAY);
+            go->SetRespawnTime(GetDefenderTeam() == TEAM_ALLIANCE ? 0s : 1_days);
         }
 
         if (GameObject* go = SpawnGameObject(teleporter.HordeEntry, teleporter.Pos, teleporter.Rot))
         {
             DefenderPortalList[TEAM_HORDE].push_back(go->GetGUID());
-            go->SetRespawnTime(GetDefenderTeam() == TEAM_HORDE ? RESPAWN_IMMEDIATELY : RESPAWN_ONE_DAY);
+            go->SetRespawnTime(GetDefenderTeam() == TEAM_HORDE ? 0s : 1_days);
         }
     }
 
@@ -688,11 +688,11 @@ void BattlefieldWG::OnBattleEnd(bool endByTimer)
     // Update portals
     for (auto itr = DefenderPortalList[GetDefenderTeam()].begin(); itr != DefenderPortalList[GetDefenderTeam()].end(); ++itr)
         if (GameObject* portal = GetGameObject(*itr))
-            portal->SetRespawnTime(RESPAWN_IMMEDIATELY);
+            portal->SetRespawnTime(0s);
 
     for (auto itr = DefenderPortalList[GetAttackerTeam()].begin(); itr != DefenderPortalList[GetAttackerTeam()].end(); ++itr)
         if (GameObject* portal = GetGameObject(*itr))
-            portal->SetRespawnTime(RESPAWN_ONE_DAY);
+            portal->SetRespawnTime(1_days);
 
     // Saving data
     for (BfWGGameObjectBuilding* building : BuildingsInZone)
@@ -1260,7 +1260,7 @@ void BattlefieldWG::ProcessEvent(WorldObject* obj, uint32 eventId)
         if (CanInteractWithRelic())
             EndBattle(false);
         else if (GameObject* relic = GetRelic())
-            relic->SetRespawnTime(RESPAWN_IMMEDIATELY);
+            relic->SetRespawnTime(0s);
     }
 
     // if destroy or damage event, search the wall/tower and update worldstate/send warning message
@@ -1680,11 +1680,11 @@ void BfWGGameObjectBuilding::UpdateCreatureAndGo()
 
     for (ObjectGuid guid : m_GameObjectList[_wg->GetDefenderTeam()])
         if (GameObject* go = _wg->GetGameObject(guid))
-            go->SetRespawnTime(RESPAWN_ONE_DAY);
+            go->SetRespawnTime(1_days);
 
     for (ObjectGuid guid : m_GameObjectList[_wg->GetAttackerTeam()])
         if (GameObject* go = _wg->GetGameObject(guid))
-            go->SetRespawnTime(RESPAWN_IMMEDIATELY);
+            go->SetRespawnTime(0s);
 }
 
 void BfWGGameObjectBuilding::UpdateTurretAttack(bool disable)

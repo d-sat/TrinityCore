@@ -1309,7 +1309,7 @@ class spell_icc_sprit_alarm : public SpellScriptLoader
                 }
 
                 if (GameObject* trap = GetGObjCaster()->FindNearestGameObject(trapId, 5.0f))
-                    trap->SetRespawnTime(trap->GetGOInfo()->GetAutoCloseTime() / IN_MILLISECONDS);
+                    trap->SetRespawnTime(std::chrono::duration_cast<Seconds>(Milliseconds(trap->GetGOInfo()->GetAutoCloseTime())));
 
                 std::list<Creature*> wards;
                 GetGObjCaster()->GetCreatureListWithEntryInGrid(wards, NPC_DEATHBOUND_WARD, 150.0f);

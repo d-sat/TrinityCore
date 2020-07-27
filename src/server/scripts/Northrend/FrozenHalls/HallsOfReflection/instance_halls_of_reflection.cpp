@@ -259,7 +259,7 @@ class instance_halls_of_reflection : public InstanceMapScript
                     case GO_THE_SKYBREAKER_STAIRS:
                     case GO_ORGRIMS_HAMMER_STAIRS:
                         if (GetBossState(DATA_THE_LICH_KING_ESCAPE) == DONE)
-                            go->SetRespawnTime(DAY);
+                            go->SetRespawnTime(1_days);
                         GunshipStairGUIDs.insert(go->GetGUID());
                         break;
                     case GO_THE_CAPTAIN_CHEST_ALLIANCE_NORMAL:
@@ -659,7 +659,7 @@ class instance_halls_of_reflection : public InstanceMapScript
 
                         for (ObjectGuid guid : GunshipStairGUIDs)
                             if (GameObject* stairs = instance->GetGameObject(guid))
-                                stairs->SetRespawnTime(DAY);
+                                stairs->SetRespawnTime(1_days);
 
                         if (Creature* jainaOrSylvanas = instance->GetCreature(JainaOrSylvanasEscapeGUID))
                             jainaOrSylvanas->AI()->DoAction(ACTION_GUNSHIP_ARRIVAL_2);

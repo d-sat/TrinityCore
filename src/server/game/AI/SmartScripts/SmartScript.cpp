@@ -1507,7 +1507,7 @@ void SmartScript::ProcessAction(SmartScriptHolder& e, Unit* unit, uint32 var0, u
                     if (target->ToGameObject()->isSpawnedByDefault())
                         TC_LOG_WARN("sql.sql", "Invalid gameobject target '%s' (entry %u, spawnId %u) for SMART_ACTION_ENABLE_TEMP_GOBJ - the object is spawned by default", target->GetName().c_str(), target->GetEntry(), target->ToGameObject()->GetSpawnId());
                     else
-                        target->ToGameObject()->SetRespawnTime(e.action.enableTempGO.duration);
+                        target->ToGameObject()->SetRespawnTime(Seconds(e.action.enableTempGO.duration));
                 }
             }
             break;

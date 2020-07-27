@@ -170,7 +170,7 @@ struct dummy_dragonAI : public ScriptedAI
     void Initialize()
     {
         waypointId = 0;
-        portalRespawnTime = 30000;
+        portalRespawnTime = 30s;
         _canMoveFree = false;
         _canLoot = true;
     }
@@ -403,7 +403,7 @@ struct dummy_dragonAI : public ScriptedAI
         InstanceScript* instance;
         EventMap events;
         uint32   waypointId;
-        int32    portalRespawnTime;
+        Seconds  portalRespawnTime;
         bool     _canMoveFree;
         bool     _canLoot;
 };

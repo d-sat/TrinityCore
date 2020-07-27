@@ -672,17 +672,17 @@ class instance_icecrown_citadel : public InstanceMapScript
                     case GO_FROZEN_LAVAMAN:
                         FrozenBolvarGUID = go->GetGUID();
                         if (GetBossState(DATA_THE_LICH_KING) == DONE)
-                            go->SetRespawnTime(7 * DAY);
+                            go->SetRespawnTime(7_days);
                         break;
                     case GO_LAVAMAN_PILLARS_CHAINED:
                         PillarsChainedGUID = go->GetGUID();
                         if (GetBossState(DATA_THE_LICH_KING) == DONE)
-                            go->SetRespawnTime(7 * DAY);
+                            go->SetRespawnTime(7_days);
                         break;
                     case GO_LAVAMAN_PILLARS_UNCHAINED:
                         PillarsUnchainedGUID = go->GetGUID();
                         if (GetBossState(DATA_THE_LICH_KING) == DONE)
-                            go->SetRespawnTime(7 * DAY);
+                            go->SetRespawnTime(7_days);
                         break;
                     default:
                         break;
@@ -1012,11 +1012,11 @@ class instance_icecrown_citadel : public InstanceMapScript
                         else if (state == DONE)
                         {
                             if (GameObject* bolvar = instance->GetGameObject(FrozenBolvarGUID))
-                                bolvar->SetRespawnTime(7 * DAY);
+                                bolvar->SetRespawnTime(7_days);
                             if (GameObject* pillars = instance->GetGameObject(PillarsChainedGUID))
-                                pillars->SetRespawnTime(7 * DAY);
+                                pillars->SetRespawnTime(7_days);
                             if (GameObject* pillars = instance->GetGameObject(PillarsUnchainedGUID))
-                                pillars->SetRespawnTime(7 * DAY);
+                                pillars->SetRespawnTime(7_days);
 
                             instance->SummonCreature(NPC_LADY_JAINA_PROUDMOORE_QUEST, JainaSpawnPos);
                             instance->SummonCreature(NPC_MURADIN_BRONZEBEARD_QUEST, MuradinSpawnPos);

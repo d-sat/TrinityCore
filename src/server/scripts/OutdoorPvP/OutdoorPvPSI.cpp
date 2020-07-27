@@ -179,7 +179,7 @@ bool OutdoorPvPSI::HandleDropFlag(Player* player, uint32 spellId)
                             return true;
                         }
 
-                        go->SetRespawnTime(0);
+                        go->SetRespawnTime(0s);
 
                         if (!map->AddToMap(go))
                         {
@@ -208,7 +208,7 @@ bool OutdoorPvPSI::HandleDropFlag(Player* player, uint32 spellId)
                             return true;
                         }
 
-                        go->SetRespawnTime(0);
+                        go->SetRespawnTime(0s);
 
                         if (!map->AddToMap(go))
                         {
@@ -233,7 +233,7 @@ bool OutdoorPvPSI::HandleCustomSpell(Player* player, uint32 spellId, GameObject*
     if (go->GetGOInfo()->entry == SI_SILITHYST_MOUND)
     {
         // despawn go
-        go->SetRespawnTime(0);
+        go->SetRespawnTime(0s);
         go->Delete();
     }
     return true;

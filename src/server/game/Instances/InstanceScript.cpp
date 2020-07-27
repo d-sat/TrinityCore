@@ -543,7 +543,7 @@ void InstanceScript::DoRespawnGameObject(ObjectGuid guid, Seconds timeToDespawn 
         if (go->isSpawned())
             return;
 
-        go->SetRespawnTime(timeToDespawn.count());
+        go->SetRespawnTime(timeToDespawn);
     }
     else
         TC_LOG_DEBUG("scripts", "InstanceScript: DoRespawnGameObject failed");

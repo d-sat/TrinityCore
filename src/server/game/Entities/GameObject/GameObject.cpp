@@ -498,7 +498,7 @@ void GameObject::Update(uint32 diff)
                 case GAMEOBJECT_TYPE_FISHINGNODE:
                 {
                     // fishing code (bobber ready)
-                    if (GameTime::GetGameTime() > m_respawnTime - FISHING_BOBBER_READY_TIME)
+                    if (GameTime::GetGameTime() > m_respawnTime - FISHING_BOBBER_READY_TIME.count())
                     {
                         // splash bobber (bobber ready now)
                         Unit* caster = GetOwner();
@@ -549,7 +549,7 @@ void GameObject::Update(uint32 diff)
                         {
                             ObjectGuid targetGuid = sObjectMgr->GetLinkedRespawnGuid(dbtableHighGuid);
                             if (targetGuid == dbtableHighGuid) // if linking self, never respawn
-                                SetRespawnTime(WEEK);
+                                SetRespawnTime(7_days);
                             else
                                 m_respawnTime = (now > linkedRespawntime ? now : linkedRespawntime) + urand(5, MINUTE); // else copy time from master and add a little
                             SaveRespawnTime();
@@ -810,7 +810,7 @@ void GameObject::Update(uint32 diff)
             }
             else if (GetOwnerGUID() || GetSpellId())
             {
-                SetRespawnTime(0);
+                SetRespawnTime(0s);
                 Delete();
                 return;
             }
@@ -1314,11 +1314,11 @@ time_t GameObject::GetRespawnTimeEx() const
         return now;
 }
 
-void GameObject::SetRespawnTime(int32 respawn)
+void GameObject::SetRespawnTime(Seconds respawn)
 {
-    m_respawnTime = respawn > 0 ? GameTime::GetGameTime() + respawn : 0;
-    m_respawnDelayTime = respawn > 0 ? respawn : 0;
-    if (respawn && !m_spawnedByDefault)
+    m_respawnTime = respawn > 0s ? GameTime::GetGameTime() + respawn.count() : 0;
+    m_respawnDelayTime = respawn > 0s ? respawn.count() : 0;
+    if (respawn > 0s && !m_spawnedByDefault)
         UpdateObjectVisibility(true);
 }
 

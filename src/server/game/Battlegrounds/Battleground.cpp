@@ -1436,7 +1436,7 @@ void Battleground::SpawnBGObject(uint32 type, uint32 respawntime)
                 // Change state from GO_JUST_DEACTIVATED to GO_READY in case battleground is starting again
                 obj->SetLootState(GO_READY);
             }
-            obj->SetRespawnTime(respawntime);
+            obj->SetRespawnTime(Seconds(respawntime));
             map->AddToMap(obj);
         }
 }
@@ -1526,7 +1526,7 @@ bool Battleground::DelObject(uint32 type)
 
     if (GameObject* obj = GetBgMap()->GetGameObject(BgObjects[type]))
     {
-        obj->SetRespawnTime(0);                                 // not save respawn time
+        obj->SetRespawnTime(0s);                                 // not save respawn time
         obj->Delete();
         BgObjects[type].Clear();
         return true;
