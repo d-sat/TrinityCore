@@ -108,7 +108,6 @@ enum CombatPhase
 
 enum MiscData
 {
-
     DATA_LOVE_TO_SKADI                   = 0,
     FIRST_WAVE_MAX_WARRIORS              = 10,
     FIRST_WAVE_SIZE                      = 13,
@@ -139,195 +138,180 @@ Position const FirstWaveLocations[FIRST_WAVE_SIZE] =
     { 481.3883f, -507.1089f, 104.7241f, 3.263766f },
 };
 
-class boss_skadi : public CreatureScript
+struct boss_skadi : public BossAI
 {
-public:
-    boss_skadi() : CreatureScript("boss_skadi") { }
-
-    struct boss_skadiAI : public BossAI
+    boss_skadi(Creature* creature) : BossAI(creature, DATA_SKADI_THE_RUTHLESS)
     {
-        boss_skadiAI(Creature* creature) : BossAI(creature, DATA_SKADI_THE_RUTHLESS)
-        {
-            Initialize();
-        }
-
-        void Initialize()
-        {
-            firstWaveSummoned = false;
-            _harpoonHit = 0;
-            _loveSkadi = 0;
-            _phase = PHASE_GROUND;
-            scheduler.SetValidator([this]
-            {
-                return !me->HasUnitState(UNIT_STATE_CASTING);
-            });
-        }
-
-        void Reset() override
-        {
-            _Reset();
-            Initialize();
-            me->SetReactState(REACT_PASSIVE);
-            if (!instance->GetCreature(DATA_GRAUF))
-                me->SummonCreature(NPC_GRAUF, GraufLoc);
-
-            instance->DoStopTimedAchievement(ACHIEVEMENT_TIMED_TYPE_EVENT, ACHIEV_LODI_DODI_WE_LOVES_THE_SKADI);
-        }
-
-        void EnterEvadeMode(EvadeReason /*why*/) override
-        {
-            summons.DespawnAll();
-            _DespawnAtEvade();
-        }
-
-        void JustSummoned(Creature* summon) override
-        {
-            switch (summon->GetEntry())
-            {
-                case NPC_YMIRJAR_WARRIOR:
-                case NPC_YMIRJAR_WITCH_DOCTOR:
-                case NPC_YMIRJAR_HARPOONER:
-                    if (firstWaveSummoned)
-                        summon->GetMotionMaster()->MovePoint(POINT_1, SecondaryWavesInitialPoint);
-                    break;
-                default:
-                    break;
-            }
-            summons.Summon(summon);
-        }
-
-        void SpawnFirstWave()
-        {
-            for (uint8 i = 0; i < FIRST_WAVE_MAX_WARRIORS; i++)
-                if (Creature* summon = me->SummonCreature(NPC_YMIRJAR_WARRIOR, SpawnLoc, TEMPSUMMON_CORPSE_TIMED_DESPAWN, 5s))
-                    summon->GetMotionMaster()->MovePoint(POINT_0, FirstWaveLocations[i]);
-
-            if (Creature* crea = me->SummonCreature(NPC_YMIRJAR_WITCH_DOCTOR, SpawnLoc, TEMPSUMMON_CORPSE_TIMED_DESPAWN, 5s))
-                crea->GetMotionMaster()->MovePoint(POINT_0, FirstWaveLocations[10]);
-            if (Creature* crea = me->SummonCreature(NPC_YMIRJAR_HARPOONER, SpawnLoc, TEMPSUMMON_CORPSE_TIMED_DESPAWN, 5s))
-                crea->GetMotionMaster()->MovePoint(POINT_0, FirstWaveLocations[11]);
-            if (Creature* crea = me->SummonCreature(NPC_YMIRJAR_HARPOONER, SpawnLoc, TEMPSUMMON_CORPSE_TIMED_DESPAWN, 5s))
-                crea->GetMotionMaster()->MovePoint(POINT_0, FirstWaveLocations[12]);
-
-            firstWaveSummoned = true;
-        }
-
-        void JustDied(Unit* /*killer*/) override
-        {
-            _JustDied();
-            Talk(SAY_DEATH);
-        }
-
-        void KilledUnit(Unit* who) override
-        {
-            if (who->GetTypeId() == TYPEID_PLAYER)
-                Talk(SAY_KILL);
-        }
-
-        void DoAction(int32 action) override
-        {
-            switch (action)
-            {
-                case ACTION_START_ENCOUNTER:
-                    instance->SetBossState(DATA_SKADI_THE_RUTHLESS, IN_PROGRESS);
-                    me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
-                    me->setActive(true);
-                    SpawnFirstWave();
-                    Talk(SAY_AGGRO);
-                    _phase = PHASE_FLYING;
-                    instance->DoStartTimedAchievement(ACHIEVEMENT_TIMED_TYPE_EVENT, ACHIEV_LODI_DODI_WE_LOVES_THE_SKADI);
-
-                    scheduler
-                        .Schedule(Seconds(6), [this](TaskContext resetCheck)
-                        {
-                            if (Creature* resetTrigger = me->FindNearestCreature(NPC_TRIGGER_RESET, 200.0f))
-                                resetTrigger->CastSpell(resetTrigger, SPELL_UTGARDE_PINNACLE_GUANTLET_RESET_CHECK, true);
-                            resetCheck.Repeat();
-                        })
-                        .Schedule(Seconds(2), [this](TaskContext /*context*/)
-                        {
-                            if (Creature* grauf = instance->GetCreature(DATA_GRAUF))
-                                DoCast(grauf, SPELL_RIDE_GRAUF);
-                        });
-
-                    if (Creature* summonTrigger = me->SummonCreature(NPC_WORLD_TRIGGER, SpawnLoc))
-                        summonTrigger->CastSpell(summonTrigger, SPELL_SUMMON_GAUNLET_MOBS_PERIODIC, true);
-
-                    if (Creature* combatTrigger = me->SummonCreature(NPC_COMBAT_TRIGGER, SpawnLoc))
-                        combatTrigger->AI()->DoZoneInCombat();
-                    break;
-                case ACTION_DRAKE_BREATH:
-                    if (_loveSkadi == 1)
-                        _loveSkadi++;
-                    Talk(SAY_DRAKE_BREATH);
-                    break;
-                case ACTION_GAUNTLET_END:
-                    Talk(SAY_DRAKE_DEATH);
-                    DoCastSelf(SPELL_SKADI_TELEPORT);
-                    summons.DespawnEntry(NPC_WORLD_TRIGGER);
-                    me->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
-                    me->SetImmuneToPC(false);
-                    me->SetReactState(REACT_AGGRESSIVE);
-                    _phase = PHASE_GROUND;
-
-                    scheduler
-                        .Schedule(Seconds(8), [this](TaskContext crush)
-                        {
-                            DoCastVictim(SPELL_CRUSH);
-                            crush.Repeat();
-                        })
-                        .Schedule(Seconds(11), [this](TaskContext poisonedSpear)
-                        {
-                            if (Unit* target = SelectTarget(SelectTargetMethod::Random))
-                                DoCast(target, SPELL_POISONED_SPEAR);
-                            poisonedSpear.Repeat();
-                        })
-                        .Schedule(Seconds(23), [this](TaskContext whirlwind)
-                        {
-                            DoCast(SPELL_WHIRLWIND);
-                            whirlwind.Repeat();
-                        });
-                    break;
-                case ACTION_HARPOON_HIT:
-                    _harpoonHit++;
-                    if (_harpoonHit == 1)
-                        _loveSkadi = 1;
-                    break;
-            }
-        }
-
-        uint32 GetData(uint32 id) const override
-        {
-            if (id == DATA_LOVE_TO_SKADI)
-                return _loveSkadi;
-
-            return 0;
-        }
-
-        void UpdateAI(uint32 diff) override
-        {
-            scheduler.Update(diff);
-
-            if (_phase == PHASE_GROUND)
-            {
-                if (!UpdateVictim())
-                    return;
-
-                DoMeleeAttackIfReady();
-            }
-        }
-
-    private:
-        CombatPhase _phase;
-        uint8 _harpoonHit;
-        uint8 _loveSkadi;
-        bool firstWaveSummoned;
-    };
-
-    CreatureAI* GetAI(Creature* creature) const override
-    {
-        return GetUtgardePinnacleAI<boss_skadiAI>(creature);
+        Initialize();
     }
+
+    void Initialize()
+    {
+        firstWaveSummoned = false;
+        _harpoonHit = 0;
+        _loveSkadi = 0;
+        _phase = PHASE_GROUND;
+    }
+
+    void Reset() override
+    {
+        BossAI::Reset();
+        Initialize();
+        me->SetReactState(REACT_PASSIVE);
+        if (!instance->GetCreature(DATA_GRAUF))
+            me->SummonCreature(NPC_GRAUF, GraufLoc);
+
+        instance->DoStopTimedAchievement(ACHIEVEMENT_TIMED_TYPE_EVENT, ACHIEV_LODI_DODI_WE_LOVES_THE_SKADI);
+    }
+
+    void EnterEvadeMode(EvadeReason /*why*/) override
+    {
+        summons.DespawnAll();
+        _DespawnAtEvade();
+    }
+
+    void JustSummoned(Creature* summon) override
+    {
+        switch (summon->GetEntry())
+        {
+            case NPC_YMIRJAR_WARRIOR:
+            case NPC_YMIRJAR_WITCH_DOCTOR:
+            case NPC_YMIRJAR_HARPOONER:
+                if (firstWaveSummoned)
+                    summon->GetMotionMaster()->MovePoint(POINT_1, SecondaryWavesInitialPoint);
+                break;
+            default:
+                break;
+        }
+        summons.Summon(summon);
+    }
+
+    void SpawnFirstWave()
+    {
+        for (uint8 i = 0; i < FIRST_WAVE_MAX_WARRIORS; i++)
+            if (Creature* summon = me->SummonCreature(NPC_YMIRJAR_WARRIOR, SpawnLoc, TEMPSUMMON_CORPSE_TIMED_DESPAWN, 5s))
+                summon->GetMotionMaster()->MovePoint(POINT_0, FirstWaveLocations[i]);
+
+        if (Creature* crea = me->SummonCreature(NPC_YMIRJAR_WITCH_DOCTOR, SpawnLoc, TEMPSUMMON_CORPSE_TIMED_DESPAWN, 5s))
+            crea->GetMotionMaster()->MovePoint(POINT_0, FirstWaveLocations[10]);
+        if (Creature* crea = me->SummonCreature(NPC_YMIRJAR_HARPOONER, SpawnLoc, TEMPSUMMON_CORPSE_TIMED_DESPAWN, 5s))
+            crea->GetMotionMaster()->MovePoint(POINT_0, FirstWaveLocations[11]);
+        if (Creature* crea = me->SummonCreature(NPC_YMIRJAR_HARPOONER, SpawnLoc, TEMPSUMMON_CORPSE_TIMED_DESPAWN, 5s))
+            crea->GetMotionMaster()->MovePoint(POINT_0, FirstWaveLocations[12]);
+
+        firstWaveSummoned = true;
+    }
+
+    void JustDied(Unit* killer) override
+    {
+        BossAI::JustDied(killer);
+        Talk(SAY_DEATH);
+    }
+
+    void KilledUnit(Unit* who) override
+    {
+        if (who->GetTypeId() == TYPEID_PLAYER)
+            Talk(SAY_KILL);
+    }
+
+    void DoAction(int32 action) override
+    {
+        switch (action)
+        {
+            case ACTION_START_ENCOUNTER:
+                instance->SetBossState(DATA_SKADI_THE_RUTHLESS, IN_PROGRESS);
+                me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+                me->setActive(true);
+                SpawnFirstWave();
+                Talk(SAY_AGGRO);
+                _phase = PHASE_FLYING;
+                instance->DoStartTimedAchievement(ACHIEVEMENT_TIMED_TYPE_EVENT, ACHIEV_LODI_DODI_WE_LOVES_THE_SKADI);
+
+                scheduler
+                    .Schedule(6s, [this](TaskContext resetCheck)
+                    {
+                        if (Creature* resetTrigger = me->FindNearestCreature(NPC_TRIGGER_RESET, 200.0f))
+                            resetTrigger->CastSpell(resetTrigger, SPELL_UTGARDE_PINNACLE_GUANTLET_RESET_CHECK, true);
+                        resetCheck.Repeat();
+                    })
+                    .Schedule(2s, [this](TaskContext /*context*/)
+                    {
+                        if (Creature* grauf = instance->GetCreature(DATA_GRAUF))
+                            DoCast(grauf, SPELL_RIDE_GRAUF);
+                    });
+
+                if (Creature* summonTrigger = me->SummonCreature(NPC_WORLD_TRIGGER, SpawnLoc))
+                    summonTrigger->CastSpell(summonTrigger, SPELL_SUMMON_GAUNLET_MOBS_PERIODIC, true);
+
+                if (Creature* combatTrigger = me->SummonCreature(NPC_COMBAT_TRIGGER, SpawnLoc))
+                    combatTrigger->AI()->DoZoneInCombat();
+                break;
+            case ACTION_DRAKE_BREATH:
+                if (_loveSkadi == 1)
+                    _loveSkadi++;
+                Talk(SAY_DRAKE_BREATH);
+                break;
+            case ACTION_GAUNTLET_END:
+                Talk(SAY_DRAKE_DEATH);
+                DoCastSelf(SPELL_SKADI_TELEPORT);
+                summons.DespawnEntry(NPC_WORLD_TRIGGER);
+                me->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+                me->SetImmuneToPC(false);
+                me->SetReactState(REACT_AGGRESSIVE);
+                _phase = PHASE_GROUND;
+
+                scheduler
+                    .Schedule(8s, [this](TaskContext crush)
+                    {
+                        DoCastVictim(SPELL_CRUSH);
+                        crush.Repeat();
+                    })
+                    .Schedule(11s, [this](TaskContext poisonedSpear)
+                    {
+                        if (Unit* target = SelectTarget(SelectTargetMethod::Random))
+                            DoCast(target, SPELL_POISONED_SPEAR);
+                        poisonedSpear.Repeat();
+                    })
+                    .Schedule(23s, [this](TaskContext whirlwind)
+                    {
+                        DoCast(SPELL_WHIRLWIND);
+                        whirlwind.Repeat();
+                    });
+                break;
+            case ACTION_HARPOON_HIT:
+                _harpoonHit++;
+                if (_harpoonHit == 1)
+                    _loveSkadi = 1;
+                break;
+        }
+    }
+
+    uint32 GetData(uint32 id) const override
+    {
+        if (id == DATA_LOVE_TO_SKADI)
+            return _loveSkadi;
+
+        return 0;
+    }
+
+    void UpdateAI(uint32 diff) override
+    {
+        scheduler.Update(diff);
+
+        if (_phase == PHASE_GROUND)
+        {
+            if (!UpdateVictim())
+                return;
+
+            DoMeleeAttackIfReady();
+        }
+    }
+
+private:
+    CombatPhase _phase;
+    uint8 _harpoonHit;
+    uint8 _loveSkadi;
+    bool firstWaveSummoned;
 };
 
 class npc_grauf : public CreatureScript
@@ -976,7 +960,8 @@ class at_skadi_gaunlet : public AreaTriggerScript
 
 void AddSC_boss_skadi()
 {
-    new boss_skadi();
+    RegisterCreatureAIWithFactory(boss_skadi, GetUtgardePinnacleAI);
+
     new npc_grauf();
     new npc_ymirjar_warrior();
     new npc_ymirjar_witch_doctor();
