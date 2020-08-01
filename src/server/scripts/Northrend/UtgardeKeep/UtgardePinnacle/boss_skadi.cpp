@@ -506,102 +506,69 @@ protected:
     TaskScheduler _scheduler;
 };
 
-class npc_ymirjar_warrior : public CreatureScript
+struct npc_ymirjar_warrior : public npc_skadi_trashAI
 {
-public:
-    npc_ymirjar_warrior() : CreatureScript("npc_ymirjar_warrior") { }
+    npc_ymirjar_warrior(Creature* creature) : npc_skadi_trashAI(creature) { }
 
-    struct npc_ymirjar_warriorAI : public npc_skadi_trashAI
+    void ScheduleTasks() override
     {
-        npc_ymirjar_warriorAI(Creature* creature) : npc_skadi_trashAI(creature) { }
-
-        void ScheduleTasks() override
-        {
-            _scheduler
-                .Schedule(Seconds(2), [this](TaskContext context)
-                {
-                    DoCastVictim(SPELL_HAMSTRING);
-                    context.Repeat(Seconds(11), Seconds(18));
-                })
-                .Schedule(Seconds(9), [this](TaskContext context)
-                {
-                    DoCastVictim(SPELL_STRIKE);
-                    context.Repeat(Seconds(10), Seconds(13));
-                });
-        }
-    };
-
-    CreatureAI* GetAI(Creature* creature) const override
-    {
-        return GetUtgardePinnacleAI<npc_ymirjar_warriorAI>(creature);
+        _scheduler
+            .Schedule(2s, [this](TaskContext context)
+            {
+                DoCastVictim(SPELL_HAMSTRING);
+                context.Repeat(11s, 18s);
+            })
+            .Schedule(9s, [this](TaskContext context)
+            {
+                DoCastVictim(SPELL_STRIKE);
+                context.Repeat(10s, 13s);
+            });
     }
 };
 
-class npc_ymirjar_witch_doctor : public CreatureScript
+struct npc_ymirjar_witch_doctor : public npc_skadi_trashAI
 {
-public:
-    npc_ymirjar_witch_doctor() : CreatureScript("npc_ymirjar_witch_doctor") { }
+    npc_ymirjar_witch_doctor(Creature* creature) : npc_skadi_trashAI(creature) { }
 
-    struct npc_ymirjar_witch_doctorAI : public npc_skadi_trashAI
+    void ScheduleTasks() override
     {
-        npc_ymirjar_witch_doctorAI(Creature* creature) : npc_skadi_trashAI(creature) { }
-
-        void ScheduleTasks() override
-        {
-            _scheduler
-                .Schedule(Seconds(2), [this](TaskContext shadowBolt)
-                {
-                    DoCastVictim(SPELL_SHADOW_BOLT);
-                    shadowBolt.Repeat();
-                })
-                .Schedule(Seconds(20), Seconds(34), [this](TaskContext shrink)
-                {
-                    DoCastVictim(SPELL_SHRINK);
-                    shrink.Repeat();
-                });
-        }
-    };
-
-    CreatureAI* GetAI(Creature* creature) const override
-    {
-        return GetUtgardePinnacleAI<npc_ymirjar_witch_doctorAI>(creature);
+        _scheduler
+            .Schedule(2s, [this](TaskContext shadowBolt)
+            {
+                DoCastVictim(SPELL_SHADOW_BOLT);
+                shadowBolt.Repeat();
+            })
+            .Schedule(20s, 34s, [this](TaskContext shrink)
+            {
+                DoCastVictim(SPELL_SHRINK);
+                shrink.Repeat();
+            });
     }
 };
 
-class npc_ymirjar_harpooner : public CreatureScript
+struct npc_ymirjar_harpooner : public npc_skadi_trashAI
 {
-public:
-    npc_ymirjar_harpooner() : CreatureScript("npc_ymirjar_harpooner") { }
+    npc_ymirjar_harpooner(Creature* creature) : npc_skadi_trashAI(creature) { }
 
-    struct npc_ymirjar_harpoonerAI : public npc_skadi_trashAI
+    void ScheduleTasks() override
     {
-        npc_ymirjar_harpoonerAI(Creature* creature) : npc_skadi_trashAI(creature) { }
+        _scheduler
+            .Schedule(13s, [this](TaskContext net)
+            {
+                if (Unit* target = SelectTarget(SelectTargetMethod::MaxDistance, 0, 30, true))
+                    DoCast(target, SPELL_NET);
+                net.Repeat();
+            })
+            .Schedule(2s, [this](TaskContext castThrow)
+            {
+                DoCastVictim(SPELL_THROW);
+                castThrow.Repeat();
+            });
+    }
 
-        void ScheduleTasks() override
-        {
-            _scheduler
-                .Schedule(Seconds(13), [this](TaskContext net)
-                {
-                    if (Unit* target = SelectTarget(SelectTargetMethod::MaxDistance, 0, 30, true))
-                        DoCast(target, SPELL_NET);
-                    net.Repeat();
-                })
-                .Schedule(Seconds(2), [this](TaskContext castThrow)
-                {
-                    DoCastVictim(SPELL_THROW);
-                    castThrow.Repeat();
-                });
-        }
-
-        void JustDied(Unit* /*killer*/) override
-        {
-            DoCast(SPELL_SUMMON_HARPOON);
-        }
-    };
-
-    CreatureAI* GetAI(Creature* creature) const override
+    void JustDied(Unit* /*killer*/) override
     {
-        return GetUtgardePinnacleAI<npc_ymirjar_harpoonerAI>(creature);
+        DoCast(SPELL_SUMMON_HARPOON);
     }
 };
 
@@ -952,9 +919,10 @@ void AddSC_boss_skadi()
     RegisterCreatureAIWithFactory(boss_skadi, GetUtgardePinnacleAI);
 
     RegisterCreatureAIWithFactory(npc_grauf, GetUtgardePinnacleAI);
-    new npc_ymirjar_warrior();
-    new npc_ymirjar_witch_doctor();
-    new npc_ymirjar_harpooner();
+    RegisterCreatureAIWithFactory(npc_ymirjar_warrior, GetUtgardePinnacleAI);
+    RegisterCreatureAIWithFactory(npc_ymirjar_witch_doctor, GetUtgardePinnacleAI);
+    RegisterCreatureAIWithFactory(npc_ymirjar_harpooner, GetUtgardePinnacleAI);
+
     new spell_freezing_cloud_area_left();
     new spell_freezing_cloud_area_right();
     new spell_freezing_cloud_damage();
