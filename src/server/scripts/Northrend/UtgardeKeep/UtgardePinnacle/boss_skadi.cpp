@@ -572,218 +572,160 @@ struct npc_ymirjar_harpooner : public npc_skadi_trashAI
     }
 };
 
-class spell_freezing_cloud_area_right : public SpellScriptLoader
+// 47594 - Freezing Cloud
+class spell_freezing_cloud_area_right : public SpellScript
 {
-    public:
-        spell_freezing_cloud_area_right() : SpellScriptLoader("spell_freezing_cloud_area_right") { }
+    PrepareSpellScript(spell_freezing_cloud_area_right);
 
-        class spell_freezing_cloud_area_right_SpellScript : public SpellScript
-        {
-            PrepareSpellScript(spell_freezing_cloud_area_right_SpellScript);
+    bool Validate(SpellInfo const* /*spell*/) override
+    {
+        return ValidateSpellInfo({ SPELL_FREEZING_CLOUD });
+    }
 
-            bool Validate(SpellInfo const* /*spell*/) override
-            {
-                return ValidateSpellInfo({ SPELL_FREEZING_CLOUD });
-            }
+    void FilterTargets(std::list<WorldObject*>& targets)
+    {
+        targets.remove_if([](WorldObject* obj) { return obj->GetPositionY() > -511.0f; });
+    }
 
-            void FilterTargets(std::list<WorldObject*>& targets)
-            {
-                targets.remove_if([](WorldObject* obj) { return obj->GetPositionY() > -511.0f; });
-            }
+    void HandleScript(SpellEffIndex /*effIndex*/)
+    {
+        GetHitUnit()->CastSpell(GetHitUnit(), SPELL_FREEZING_CLOUD, true);
+    }
 
-            void HandleScript(SpellEffIndex /*effIndex*/)
-            {
-                GetHitUnit()->CastSpell(GetHitUnit(), SPELL_FREEZING_CLOUD, true);
-            }
-
-            void Register() override
-            {
-                OnObjectAreaTargetSelect += SpellObjectAreaTargetSelectFn(spell_freezing_cloud_area_right_SpellScript::FilterTargets, EFFECT_0, TARGET_UNIT_SRC_AREA_ENTRY);
-                OnEffectHitTarget += SpellEffectFn(spell_freezing_cloud_area_right_SpellScript::HandleScript, EFFECT_0, SPELL_EFFECT_APPLY_AURA);
-            }
-        };
-
-        SpellScript* GetSpellScript() const override
-        {
-            return new spell_freezing_cloud_area_right_SpellScript();
-        }
+    void Register() override
+    {
+        OnObjectAreaTargetSelect += SpellObjectAreaTargetSelectFn(spell_freezing_cloud_area_right::FilterTargets, EFFECT_0, TARGET_UNIT_SRC_AREA_ENTRY);
+        OnEffectHitTarget += SpellEffectFn(spell_freezing_cloud_area_right::HandleScript, EFFECT_0, SPELL_EFFECT_APPLY_AURA);
+    }
 };
 
-class spell_freezing_cloud_area_left : public SpellScriptLoader
+// 47574 - Freezing Cloud
+class spell_freezing_cloud_area_left : public SpellScript
 {
-    public:
-        spell_freezing_cloud_area_left() : SpellScriptLoader("spell_freezing_cloud_area_left") { }
+    PrepareSpellScript(spell_freezing_cloud_area_left);
 
-        class spell_freezing_cloud_area_left_SpellScript : public SpellScript
-        {
-            PrepareSpellScript(spell_freezing_cloud_area_left_SpellScript);
+    bool Validate(SpellInfo const* /*spell*/) override
+    {
+        return ValidateSpellInfo({ SPELL_FREEZING_CLOUD });
+    }
 
-            bool Validate(SpellInfo const* /*spell*/) override
-            {
-                return ValidateSpellInfo({ SPELL_FREEZING_CLOUD });
-            }
+    void FilterTargets(std::list<WorldObject*>& targets)
+    {
+        targets.remove_if([](WorldObject* obj) { return obj->GetPositionY() < -511.0f; });
+    }
 
-            void FilterTargets(std::list<WorldObject*>& targets)
-            {
-                targets.remove_if([](WorldObject* obj) { return obj->GetPositionY() < -511.0f; });
-            }
+    void HandleScript(SpellEffIndex /*effIndex*/)
+    {
+        GetHitUnit()->CastSpell(GetHitUnit(), SPELL_FREEZING_CLOUD, true);
+    }
 
-            void HandleScript(SpellEffIndex /*effIndex*/)
-            {
-                GetHitUnit()->CastSpell(GetHitUnit(), SPELL_FREEZING_CLOUD, true);
-            }
-
-            void Register() override
-            {
-                OnObjectAreaTargetSelect += SpellObjectAreaTargetSelectFn(spell_freezing_cloud_area_left_SpellScript::FilterTargets, EFFECT_0, TARGET_UNIT_SRC_AREA_ENTRY);
-                OnEffectHitTarget += SpellEffectFn(spell_freezing_cloud_area_left_SpellScript::HandleScript, EFFECT_0, SPELL_EFFECT_APPLY_AURA);
-            }
-        };
-
-        SpellScript* GetSpellScript() const override
-        {
-            return new spell_freezing_cloud_area_left_SpellScript();
-        }
+    void Register() override
+    {
+        OnObjectAreaTargetSelect += SpellObjectAreaTargetSelectFn(spell_freezing_cloud_area_left::FilterTargets, EFFECT_0, TARGET_UNIT_SRC_AREA_ENTRY);
+        OnEffectHitTarget += SpellEffectFn(spell_freezing_cloud_area_left::HandleScript, EFFECT_0, SPELL_EFFECT_APPLY_AURA);
+    }
 };
 
-class spell_freezing_cloud_damage : public SpellScriptLoader
+// 47579 - Freezing Cloud
+// 60020 - Freezing Cloud
+class spell_freezing_cloud_damage : public AuraScript
 {
-    public:
-        spell_freezing_cloud_damage() : SpellScriptLoader("spell_freezing_cloud_damage") { }
+    PrepareAuraScript(spell_freezing_cloud_damage);
 
-        class spell_freezing_cloud_damage_AuraScript : public AuraScript
-        {
-            PrepareAuraScript(spell_freezing_cloud_damage_AuraScript);
+    bool CanBeAppliedOn(Unit* target)
+    {
+        if (Aura* aur = target->GetAura(GetId()))
+            if (aur->GetOwner() != GetOwner())
+                return false;
 
-            bool CanBeAppliedOn(Unit* target)
-            {
-                if (Aura* aur = target->GetAura(GetId()))
-                    if (aur->GetOwner() != GetOwner())
-                        return false;
+        return true;
+    }
 
-                return true;
-            }
-
-            void Register() override
-            {
-                DoCheckAreaTarget += AuraCheckAreaTargetFn(spell_freezing_cloud_damage_AuraScript::CanBeAppliedOn);
-            }
-        };
-
-        AuraScript* GetAuraScript() const override
-        {
-            return new spell_freezing_cloud_damage_AuraScript();
-        }
+    void Register() override
+    {
+        DoCheckAreaTarget += AuraCheckAreaTargetFn(spell_freezing_cloud_damage::CanBeAppliedOn);
+    }
 };
 
-class spell_skadi_reset_check : public SpellScriptLoader
+// 49308 - Utgarde Pinnacle Guantlet Reset Check
+class spell_skadi_reset_check : public SpellScript
 {
-    public:
-        spell_skadi_reset_check() : SpellScriptLoader("spell_skadi_reset_check") { }
+    PrepareSpellScript(spell_skadi_reset_check);
 
-        class spell_skadi_reset_check_SpellScript : public SpellScript
-        {
-            PrepareSpellScript(spell_skadi_reset_check_SpellScript);
+    void CountTargets(std::list<WorldObject*>& targets)
+    {
+        targets.remove_if(Trinity::UnitAuraCheck(false, SPELL_UTGARDE_PINNACLE_GAUNTLET_EFFECT));
+        _targetCount = targets.size();
+    }
 
-            void CountTargets(std::list<WorldObject*>& targets)
-            {
-                targets.remove_if(Trinity::UnitAuraCheck(false, SPELL_UTGARDE_PINNACLE_GAUNTLET_EFFECT));
-                _targetCount = targets.size();
-            }
+    void HandleDummy(SpellEffIndex /*effIndex*/)
+    {
+        if (_targetCount)
+            return;
 
-            void HandleDummy(SpellEffIndex /*effIndex*/)
-            {
-                if (_targetCount)
-                    return;
+        Creature* target = GetHitCreature();
+        if (!target)
+            return;
 
-                Creature* target = GetHitCreature();
-                if (!target)
-                    return;
+        if (InstanceScript* instance = target->GetInstanceScript())
+            if (instance->GetBossState(DATA_SKADI_THE_RUTHLESS) == IN_PROGRESS)
+                target->AI()->EnterEvadeMode(CreatureAI::EVADE_REASON_NO_HOSTILES);
+    }
 
-                if (InstanceScript* instance = target->GetInstanceScript())
-                    if (instance->GetBossState(DATA_SKADI_THE_RUTHLESS) == IN_PROGRESS)
-                        target->AI()->EnterEvadeMode(CreatureAI::EVADE_REASON_NO_HOSTILES);
-            }
+    void Register() override
+    {
+        OnObjectAreaTargetSelect += SpellObjectAreaTargetSelectFn(spell_skadi_reset_check::CountTargets, EFFECT_0, TARGET_UNIT_SRC_AREA_ENTRY);
+        OnEffectHitTarget += SpellEffectFn(spell_skadi_reset_check::HandleDummy, EFFECT_1, SPELL_EFFECT_DUMMY);
+    }
 
-            void Register() override
-            {
-                OnObjectAreaTargetSelect += SpellObjectAreaTargetSelectFn(spell_skadi_reset_check_SpellScript::CountTargets, EFFECT_0, TARGET_UNIT_SRC_AREA_ENTRY);
-                OnEffectHitTarget += SpellEffectFn(spell_skadi_reset_check_SpellScript::HandleDummy, EFFECT_1, SPELL_EFFECT_DUMMY);
-            }
-
-        private:
-            uint32 _targetCount = 0;
-        };
-
-        SpellScript* GetSpellScript() const override
-        {
-            return new spell_skadi_reset_check_SpellScript();
-        }
+private:
+    uint32 _targetCount = 0;
 };
 
-class spell_skadi_launch_harpoon : public SpellScriptLoader
+// 48642 - Launch Harpoon
+class spell_skadi_launch_harpoon : public SpellScript
 {
-    public:
-        spell_skadi_launch_harpoon() : SpellScriptLoader("spell_skadi_launch_harpoon") { }
+    PrepareSpellScript(spell_skadi_launch_harpoon);
 
-        class spell_skadi_launch_harpoon_SpellScript : public SpellScript
-        {
-            PrepareSpellScript(spell_skadi_launch_harpoon_SpellScript);
+    void FilterTargets(std::list<WorldObject*>& targets)
+    {
+        if (targets.size() >= 2)
+            targets.remove_if([](WorldObject* obj) { return obj->GetEntry() != NPC_GRAUF; });
+    }
 
-            void FilterTargets(std::list<WorldObject*>& targets)
-            {
-                if (targets.size() >= 2)
-                    targets.remove_if([](WorldObject* obj) { return obj->GetEntry() != NPC_GRAUF; });
-            }
+    void HandleDamageCalc()
+    {
+        if (Unit* target = GetHitUnit())
+            SetHitDamage(target->CountPctFromMaxHealth(35));
+    }
 
-            void HandleDamageCalc()
-            {
-                if (Unit* target = GetHitUnit())
-                    SetHitDamage(target->CountPctFromMaxHealth(35));
-            }
-
-            void Register() override
-            {
-                OnObjectAreaTargetSelect += SpellObjectAreaTargetSelectFn(spell_skadi_launch_harpoon_SpellScript::FilterTargets, EFFECT_0, TARGET_UNIT_CONE_ENTRY);
-                OnHit += SpellHitFn(spell_skadi_launch_harpoon_SpellScript::HandleDamageCalc);
-            }
-        };
-
-        SpellScript* GetSpellScript() const override
-        {
-            return new spell_skadi_launch_harpoon_SpellScript();
-        }
+    void Register() override
+    {
+        OnObjectAreaTargetSelect += SpellObjectAreaTargetSelectFn(spell_skadi_launch_harpoon::FilterTargets, EFFECT_0, TARGET_UNIT_CONE_ENTRY);
+        OnHit += SpellHitFn(spell_skadi_launch_harpoon::HandleDamageCalc);
+    }
 };
 
-class spell_skadi_poisoned_spear : public SpellScriptLoader
+// 50255 - Poisoned Spear
+// 59331 - Poisoned Spear
+class spell_skadi_poisoned_spear : public SpellScript
 {
-    public:
-        spell_skadi_poisoned_spear() : SpellScriptLoader("spell_skadi_poisoned_spear") { }
+    PrepareSpellScript(spell_skadi_poisoned_spear);
 
-        class spell_skadi_poisoned_spear_left_SpellScript : public SpellScript
-        {
-            PrepareSpellScript(spell_skadi_poisoned_spear_left_SpellScript);
+    bool Validate(SpellInfo const* /*spell*/) override
+    {
+        return ValidateSpellInfo({ SPELL_POISONED_SPEAR_PERIODIC });
+    }
 
-            bool Validate(SpellInfo const* /*spell*/) override
-            {
-                return ValidateSpellInfo({ SPELL_POISONED_SPEAR_PERIODIC });
-            }
+    void HandleScript(SpellEffIndex /*effIndex*/)
+    {
+        GetHitUnit()->CastSpell(GetHitUnit(), SPELL_POISONED_SPEAR_PERIODIC, true);
+    }
 
-            void HandleScript(SpellEffIndex /*effIndex*/)
-            {
-                GetHitUnit()->CastSpell(GetHitUnit(), SPELL_POISONED_SPEAR_PERIODIC, true);
-            }
-
-            void Register() override
-            {
-                OnEffectHitTarget += SpellEffectFn(spell_skadi_poisoned_spear_left_SpellScript::HandleScript, EFFECT_0, SPELL_EFFECT_SCHOOL_DAMAGE);
-            }
-        };
-
-        SpellScript* GetSpellScript() const override
-        {
-            return new spell_skadi_poisoned_spear_left_SpellScript();
-        }
+    void Register() override
+    {
+        OnEffectHitTarget += SpellEffectFn(spell_skadi_poisoned_spear::HandleScript, EFFECT_0, SPELL_EFFECT_SCHOOL_DAMAGE);
+    }
 };
 
 // 61791 - Ride Vehicle
@@ -808,70 +750,60 @@ class spell_skadi_ride_vehicle : public AuraScript
     }
 };
 
-class spell_summon_gauntlet_mobs_periodic : public SpellScriptLoader
+// 59275 - Summon Gauntlet Mobs Periodic
+class spell_summon_gauntlet_mobs_periodic : public AuraScript
 {
-    public:
-        spell_summon_gauntlet_mobs_periodic() : SpellScriptLoader("spell_summon_gauntlet_mobs_periodic") { }
+    PrepareAuraScript(spell_summon_gauntlet_mobs_periodic);
 
-        class spell_summon_gauntlet_mobs_periodic_AuraScript : public AuraScript
+    void CastTheNextTwoSpells()
+    {
+        for (uint8 i = 0; i < 2; ++i)
         {
-            PrepareAuraScript(spell_summon_gauntlet_mobs_periodic_AuraScript);
-
-            void CastTheNextTwoSpells()
-            {
-                for (uint8 i = 0; i < 2; ++i)
-                {
-                    uint32 spellId = SummonSpellsList.front();
-                    GetTarget()->CastSpell(nullptr, spellId, true);
-                    SummonSpellsList.push_back(spellId);
-                    SummonSpellsList.pop_front();
-                }
-            }
-            void PushBackTheNextTwoSpells()
-            {
-                for (uint8 j = 0; j < 2; ++j)
-                {
-                    SummonSpellsList.push_back(SummonSpellsList.front());
-                    SummonSpellsList.pop_front();
-                }
-            }
-
-            void OnPeriodic(AuraEffect const* /*aurEff*/)
-            {
-                if (RAND(0, 1))
-                {
-                    CastTheNextTwoSpells();
-                    PushBackTheNextTwoSpells();
-                }
-                else
-                {
-                    PushBackTheNextTwoSpells();
-                    CastTheNextTwoSpells();
-                }
-            }
-        private:
-            std::deque<uint32> SummonSpellsList =
-            {
-                SPELL_SUMMON_YMIRJAR_WARRIOR_E,
-                SPELL_SUMMON_YMIRJAR_HARPOONER_W,
-                SPELL_SUMMON_YMIRJAR_WARRIOR_W,
-                SPELL_SUMMON_YMIRJAR_HARPOONER_E,
-                SPELL_SUMMON_YMIRJAR_WARRIOR_W,
-                SPELL_SUMMON_YMIRJAR_WITCH_DOCTOR_E,
-                SPELL_SUMMON_YMIRJAR_WARRIOR_E,
-                SPELL_SUMMON_YMIRJAR_WITCH_DOCTOR_W
-            };
-
-            void Register() override
-            {
-                OnEffectPeriodic += AuraEffectPeriodicFn(spell_summon_gauntlet_mobs_periodic_AuraScript::OnPeriodic, EFFECT_0, SPELL_AURA_PERIODIC_DUMMY);
-            }
-        };
-
-        AuraScript* GetAuraScript() const override
-        {
-            return new spell_summon_gauntlet_mobs_periodic_AuraScript();
+            uint32 spellId = SummonSpellsList.front();
+            GetTarget()->CastSpell(nullptr, spellId, true);
+            SummonSpellsList.push_back(spellId);
+            SummonSpellsList.pop_front();
         }
+    }
+    void PushBackTheNextTwoSpells()
+    {
+        for (uint8 j = 0; j < 2; ++j)
+        {
+            SummonSpellsList.push_back(SummonSpellsList.front());
+            SummonSpellsList.pop_front();
+        }
+    }
+
+    void OnPeriodic(AuraEffect const* /*aurEff*/)
+    {
+        if (urand(0, 1))
+        {
+            CastTheNextTwoSpells();
+            PushBackTheNextTwoSpells();
+        }
+        else
+        {
+            PushBackTheNextTwoSpells();
+            CastTheNextTwoSpells();
+        }
+    }
+private:
+    std::deque<uint32> SummonSpellsList =
+    {
+        SPELL_SUMMON_YMIRJAR_WARRIOR_E,
+        SPELL_SUMMON_YMIRJAR_HARPOONER_W,
+        SPELL_SUMMON_YMIRJAR_WARRIOR_W,
+        SPELL_SUMMON_YMIRJAR_HARPOONER_E,
+        SPELL_SUMMON_YMIRJAR_WARRIOR_W,
+        SPELL_SUMMON_YMIRJAR_WITCH_DOCTOR_E,
+        SPELL_SUMMON_YMIRJAR_WARRIOR_E,
+        SPELL_SUMMON_YMIRJAR_WITCH_DOCTOR_W
+    };
+
+    void Register() override
+    {
+        OnEffectPeriodic += AuraEffectPeriodicFn(spell_summon_gauntlet_mobs_periodic::OnPeriodic, EFFECT_0, SPELL_AURA_PERIODIC_DUMMY);
+    }
 };
 
 class achievement_girl_love_to_skadi : public AchievementCriteriaScript
@@ -923,14 +855,15 @@ void AddSC_boss_skadi()
     RegisterCreatureAIWithFactory(npc_ymirjar_witch_doctor, GetUtgardePinnacleAI);
     RegisterCreatureAIWithFactory(npc_ymirjar_harpooner, GetUtgardePinnacleAI);
 
-    new spell_freezing_cloud_area_left();
-    new spell_freezing_cloud_area_right();
-    new spell_freezing_cloud_damage();
-    new spell_skadi_reset_check();
-    new spell_skadi_launch_harpoon();
-    new spell_skadi_poisoned_spear();
+    RegisterSpellScript(spell_freezing_cloud_area_left);
+    RegisterSpellScript(spell_freezing_cloud_area_right);
+    RegisterAuraScript(spell_freezing_cloud_damage);
+    RegisterSpellScript(spell_skadi_reset_check);
+    RegisterSpellScript(spell_skadi_launch_harpoon);
+    RegisterSpellScript(spell_skadi_poisoned_spear);
     RegisterAuraScript(spell_skadi_ride_vehicle);
-    new spell_summon_gauntlet_mobs_periodic();
+    RegisterAuraScript(spell_summon_gauntlet_mobs_periodic);
+
     new achievement_girl_love_to_skadi();
     new at_skadi_gaunlet();
 }
