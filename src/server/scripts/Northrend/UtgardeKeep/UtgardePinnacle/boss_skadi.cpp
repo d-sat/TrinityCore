@@ -314,142 +314,131 @@ private:
     bool firstWaveSummoned;
 };
 
-class npc_grauf : public CreatureScript
+struct npc_grauf : public ScriptedAI
 {
-public:
-    npc_grauf() : CreatureScript("npc_grauf") { }
+    npc_grauf(Creature* creature) : ScriptedAI(creature), _instance(creature->GetInstanceScript()) { }
 
-    struct npc_graufAI : public ScriptedAI
+    void Reset() override
     {
-        npc_graufAI(Creature* creature) : ScriptedAI(creature), _instance(creature->GetInstanceScript()) { }
-
-        void Reset() override
-        {
-            me->SetReactState(REACT_PASSIVE);
-            me->SetRegenerateHealth(false);
-            me->SetSpeedRate(MOVE_RUN, 2.5f);
-        }
-
-        void JustDied(Unit* /*killer*/) override
-        {
-            if (Creature* skadi = _instance->GetCreature(DATA_SKADI_THE_RUTHLESS))
-                skadi->ExitVehicle();
-
-            me->DespawnOrUnsummon(Seconds(6));
-        }
-
-        void PassengerBoarded(Unit* who, int8 /*seatId*/, bool apply) override
-        {
-            if (!apply)
-            {
-                if (Creature * skadi = _instance->GetCreature(DATA_SKADI_THE_RUTHLESS))
-                    skadi->AI()->DoAction(ACTION_GAUNTLET_END);
-                return;
-            }
-
-            Movement::MoveSplineInit init(who);
-            init.DisableTransportPathTransformations();
-            init.MoveTo(0.3320355f, 0.05355075f, 5.196949f, false);
-            who->GetMotionMaster()->LaunchMoveSpline(std::move(init), EVENT_VEHICLE_BOARD, MOTION_PRIORITY_HIGHEST);
-
-            me->setActive(true);
-            me->SetFarVisible(true);
-            me->SetCanFly(true);
-            me->SetDisableGravity(true);
-            me->SetByteFlag(UNIT_FIELD_BYTES_1, UNIT_BYTES_1_OFFSET_ANIM_TIER, UNIT_BYTE1_FLAG_ALWAYS_STAND | UNIT_BYTE1_FLAG_HOVER);
-
-            _scheduler.Schedule(Seconds(2), [this](TaskContext /*context*/)
-            {
-                me->GetMotionMaster()->MoveAlongSplineChain(POINT_BREACH, SPLINE_CHAIN_INITIAL, false);
-            });
-        }
-
-        void MovementInform(uint32 type, uint32 pointId) override
-        {
-            if (type != SPLINE_CHAIN_MOTION_TYPE)
-                return;
-
-            switch (pointId)
-            {
-                case POINT_BREACH:
-                    _scheduler
-                        .Schedule(Milliseconds(1), [this](TaskContext /*context*/)
-                        {
-                            me->SetFacingTo(BreachPoint);
-                            Talk(EMOTE_ON_RANGE);
-                        })
-                        .Schedule(Seconds(10), [this](TaskContext /*context*/)
-                        {
-                            if (RAND(POINT_LEFT, POINT_RIGHT) == POINT_LEFT)
-                                me->GetMotionMaster()->MoveAlongSplineChain(POINT_LEFT, SPLINE_CHAIN_BREACH_LEFT, false);
-                            else
-                                me->GetMotionMaster()->MoveAlongSplineChain(POINT_RIGHT, SPLINE_CHAIN_BREACH_RIGHT, false);
-                        });
-                    break;
-                case POINT_LEFT:
-                    _scheduler
-                        .Schedule(Milliseconds(1), [this](TaskContext /*context*/)
-                        {
-                            me->SetFacingTo(BreathPointLeft);
-                            Talk(EMOTE_BREATH);
-                        })
-                        .Schedule(Seconds(2), [this](TaskContext /*context*/)
-                        {
-                            me->GetMotionMaster()->MoveAlongSplineChain(POINT_BREACH, SPLINE_CHAIN_LEFT, false);
-                            DoCast(SPELL_FREEZING_CLOUD_LEFT_PERIODIC);
-                            if (Creature* skadi = _instance->GetCreature(DATA_SKADI_THE_RUTHLESS))
-                                skadi->AI()->DoAction(ACTION_DRAKE_BREATH);
-                        })
-                        .Schedule(Seconds(10), [this](TaskContext /*context*/)
-                        {
-                            me->RemoveAurasDueToSpell(SPELL_FREEZING_CLOUD_LEFT_PERIODIC);
-                        });
-                    break;
-                case POINT_RIGHT:
-                    _scheduler
-                        .Schedule(Milliseconds(1), [this](TaskContext /*context*/)
-                        {
-                            me->SetFacingTo(BreathPointRight);
-                            Talk(EMOTE_BREATH);
-                        })
-                        .Schedule(Seconds(2), [this](TaskContext /*context*/)
-                        {
-                            me->GetMotionMaster()->MoveAlongSplineChain(POINT_BREACH, SPLINE_CHAIN_RIGHT, false);
-                            DoCast(SPELL_FREEZING_CLOUD_RIGHT_PERIODIC);
-                            if (Creature* skadi = _instance->GetCreature(DATA_SKADI_THE_RUTHLESS))
-                                skadi->AI()->DoAction(ACTION_DRAKE_BREATH);
-                        })
-                        .Schedule(Seconds(10), [this](TaskContext /*context*/)
-                        {
-                            me->RemoveAurasDueToSpell(SPELL_FREEZING_CLOUD_RIGHT_PERIODIC);
-                        });
-                    break;
-                default:
-                    break;
-            }
-        }
-
-        void SpellHit(WorldObject* /*caster*/, SpellInfo const* spellInfo) override
-        {
-            if (spellInfo->Id == SPELL_LAUNCH_HARPOON)
-                if (Creature* skadi = _instance->GetCreature(DATA_SKADI_THE_RUTHLESS))
-                    skadi->AI()->DoAction(ACTION_HARPOON_HIT);
-        }
-
-        void UpdateAI(uint32 diff) override
-        {
-            _scheduler.Update(diff);
-        }
-
-    private:
-        TaskScheduler _scheduler;
-        InstanceScript* _instance;
-    };
-
-    CreatureAI* GetAI(Creature* creature) const override
-    {
-        return GetUtgardePinnacleAI<npc_graufAI>(creature);
+        me->SetReactState(REACT_PASSIVE);
+        me->SetRegenerateHealth(false);
+        me->SetSpeedRate(MOVE_RUN, 2.5f);
     }
+
+    void JustDied(Unit* /*killer*/) override
+    {
+        if (Creature* skadi = _instance->GetCreature(DATA_SKADI_THE_RUTHLESS))
+            skadi->ExitVehicle();
+
+        me->DespawnOrUnsummon(6s);
+    }
+
+    void PassengerBoarded(Unit* who, int8 /*seatId*/, bool apply) override
+    {
+        if (!apply)
+        {
+            if (Creature * skadi = _instance->GetCreature(DATA_SKADI_THE_RUTHLESS))
+                skadi->AI()->DoAction(ACTION_GAUNTLET_END);
+            return;
+        }
+
+        Movement::MoveSplineInit init(who);
+        init.DisableTransportPathTransformations();
+        init.MoveTo(0.3320355f, 0.05355075f, 5.196949f, false);
+        who->GetMotionMaster()->LaunchMoveSpline(std::move(init), EVENT_VEHICLE_BOARD, MOTION_PRIORITY_HIGHEST);
+
+        me->setActive(true);
+        me->SetFarVisible(true);
+        me->SetCanFly(true);
+        me->SetDisableGravity(true);
+        me->SetByteFlag(UNIT_FIELD_BYTES_1, UNIT_BYTES_1_OFFSET_ANIM_TIER, UNIT_BYTE1_FLAG_ALWAYS_STAND | UNIT_BYTE1_FLAG_HOVER);
+
+        _scheduler.Schedule(2s, [this](TaskContext /*context*/)
+        {
+            me->GetMotionMaster()->MoveAlongSplineChain(POINT_BREACH, SPLINE_CHAIN_INITIAL, false);
+        });
+    }
+
+    void MovementInform(uint32 type, uint32 pointId) override
+    {
+        if (type != SPLINE_CHAIN_MOTION_TYPE)
+            return;
+
+        switch (pointId)
+        {
+            case POINT_BREACH:
+                _scheduler
+                    .Schedule(1ms, [this](TaskContext /*context*/)
+                    {
+                        me->SetFacingTo(BreachPoint);
+                        Talk(EMOTE_ON_RANGE);
+                    })
+                    .Schedule(10s, [this](TaskContext /*context*/)
+                    {
+                        if (RAND(POINT_LEFT, POINT_RIGHT) == POINT_LEFT)
+                            me->GetMotionMaster()->MoveAlongSplineChain(POINT_LEFT, SPLINE_CHAIN_BREACH_LEFT, false);
+                        else
+                            me->GetMotionMaster()->MoveAlongSplineChain(POINT_RIGHT, SPLINE_CHAIN_BREACH_RIGHT, false);
+                    });
+                break;
+            case POINT_LEFT:
+                _scheduler
+                    .Schedule(1ms, [this](TaskContext /*context*/)
+                    {
+                        me->SetFacingTo(BreathPointLeft);
+                        Talk(EMOTE_BREATH);
+                    })
+                    .Schedule(2s, [this](TaskContext /*context*/)
+                    {
+                        me->GetMotionMaster()->MoveAlongSplineChain(POINT_BREACH, SPLINE_CHAIN_LEFT, false);
+                        DoCast(SPELL_FREEZING_CLOUD_LEFT_PERIODIC);
+                        if (Creature* skadi = _instance->GetCreature(DATA_SKADI_THE_RUTHLESS))
+                            skadi->AI()->DoAction(ACTION_DRAKE_BREATH);
+                    })
+                    .Schedule(10s, [this](TaskContext /*context*/)
+                    {
+                        me->RemoveAurasDueToSpell(SPELL_FREEZING_CLOUD_LEFT_PERIODIC);
+                    });
+                break;
+            case POINT_RIGHT:
+                _scheduler
+                    .Schedule(1ms, [this](TaskContext /*context*/)
+                    {
+                        me->SetFacingTo(BreathPointRight);
+                        Talk(EMOTE_BREATH);
+                    })
+                    .Schedule(2s, [this](TaskContext /*context*/)
+                    {
+                        me->GetMotionMaster()->MoveAlongSplineChain(POINT_BREACH, SPLINE_CHAIN_RIGHT, false);
+                        DoCast(SPELL_FREEZING_CLOUD_RIGHT_PERIODIC);
+                        if (Creature* skadi = _instance->GetCreature(DATA_SKADI_THE_RUTHLESS))
+                            skadi->AI()->DoAction(ACTION_DRAKE_BREATH);
+                    })
+                    .Schedule(10s, [this](TaskContext /*context*/)
+                    {
+                        me->RemoveAurasDueToSpell(SPELL_FREEZING_CLOUD_RIGHT_PERIODIC);
+                    });
+                break;
+            default:
+                break;
+        }
+    }
+
+    void SpellHit(WorldObject* /*caster*/, SpellInfo const* spellInfo) override
+    {
+        if (spellInfo->Id == SPELL_LAUNCH_HARPOON)
+            if (Creature* skadi = _instance->GetCreature(DATA_SKADI_THE_RUTHLESS))
+                skadi->AI()->DoAction(ACTION_HARPOON_HIT);
+    }
+
+    void UpdateAI(uint32 diff) override
+    {
+        _scheduler.Update(diff);
+    }
+
+private:
+    TaskScheduler _scheduler;
+    InstanceScript* _instance;
 };
 
 struct npc_skadi_trashAI : public ScriptedAI
@@ -962,7 +951,7 @@ void AddSC_boss_skadi()
 {
     RegisterCreatureAIWithFactory(boss_skadi, GetUtgardePinnacleAI);
 
-    new npc_grauf();
+    RegisterCreatureAIWithFactory(npc_grauf, GetUtgardePinnacleAI);
     new npc_ymirjar_warrior();
     new npc_ymirjar_witch_doctor();
     new npc_ymirjar_harpooner();
