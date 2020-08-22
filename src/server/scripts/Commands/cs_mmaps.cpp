@@ -58,7 +58,7 @@ public:
         return commandTable;
     }
 
-    static bool HandleMmapPathCommand(ChatHandler* handler, char const* args)
+    static bool HandleMmapPathCommand(ChatHandler* handler, Optional<std::string> modeArg)
     {
         if (!MMAP::MMapFactory::createOrGetMMapManager()->GetNavMesh(handler->GetSession()->GetPlayer()->GetMapId()))
         {
@@ -77,14 +77,12 @@ public:
             return true;
         }
 
-        char* para = strtok((char*)args, " ");
-
         bool useStraightPath = false;
-        if (para && strcmp(para, "true") == 0)
+        if (modeArg && StringEqualI(*modeArg, "straight"))
             useStraightPath = true;
 
         bool useRaycast = false;
-        if (para && (strcmp(para, "line") == 0 || strcmp(para, "ray") == 0 || strcmp(para, "raycast") == 0))
+        if (modeArg && StringEqualI(*modeArg, "raycast"))
             useRaycast = true;
 
         // unit locations
@@ -113,13 +111,13 @@ public:
         if (!player->IsGameMaster())
             handler->PSendSysMessage("Enable GM mode to see the path points.");
 
-        for (uint32 i = 0; i < pointPath.size(); ++i)
-            player->SummonCreature(VISUAL_WAYPOINT, pointPath[i].x, pointPath[i].y, pointPath[i].z, 0, TEMPSUMMON_TIMED_DESPAWN, 9s);
+        for (G3D::Vector3 const& i : pointPath)
+            player->SummonCreature(VISUAL_WAYPOINT, i.x, i.y, i.z, 0, TEMPSUMMON_TIMED_DESPAWN, 9s);
 
         return true;
     }
 
-    static bool HandleMmapLocCommand(ChatHandler* handler, char const* /*args*/)
+    static bool HandleMmapLocCommand(ChatHandler* handler)
     {
         handler->PSendSysMessage("mmap tileloc:");
 
@@ -182,7 +180,7 @@ public:
         return true;
     }
 
-    static bool HandleMmapLoadedTilesCommand(ChatHandler* handler, char const* /*args*/)
+    static bool HandleMmapLoadedTilesCommand(ChatHandler* handler)
     {
         uint32 mapid = handler->GetSession()->GetPlayer()->GetMapId();
         dtNavMesh const* navmesh = MMAP::MMapFactory::createOrGetMMapManager()->GetNavMesh(mapid);
@@ -207,7 +205,7 @@ public:
         return true;
     }
 
-    static bool HandleMmapStatsCommand(ChatHandler* handler, char const* /*args*/)
+    static bool HandleMmapStatsCommand(ChatHandler* handler)
     {
         uint32 mapId = handler->GetSession()->GetPlayer()->GetMapId();
         handler->PSendSysMessage("mmap stats:");
@@ -255,7 +253,7 @@ public:
         return true;
     }
 
-    static bool HandleMmapTestArea(ChatHandler* handler, char const* /*args*/)
+    static bool HandleMmapTestArea(ChatHandler* handler)
     {
         float radius = 40.0f;
         WorldObject* object = handler->GetSession()->GetPlayer();
@@ -275,9 +273,9 @@ public:
 
             float gx, gy, gz;
             object->GetPosition(gx, gy, gz);
-            for (std::list<Creature*>::iterator itr = creatureList.begin(); itr != creatureList.end(); ++itr)
+            for (Creature const* c : creatureList)
             {
-                PathGenerator path(*itr);
+                PathGenerator path(c);
                 path.CalculatePath(gx, gy, gz);
                 ++paths;
             }
