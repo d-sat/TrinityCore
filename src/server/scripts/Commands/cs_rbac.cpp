@@ -99,6 +99,9 @@ public:
         if (!account)
             return false;
 
+        if (handler->HasLowerSecurityAccount(nullptr, account->GetID(), true))
+            return false;
+
         if (!realmId)
             realmId = -1;
 
@@ -138,6 +141,9 @@ public:
         if (!account)
             return false;
 
+        if (handler->HasLowerSecurityAccount(nullptr, account->GetID(), true))
+            return false;
+
         if (!realmId)
             realmId = -1;
 
@@ -175,6 +181,9 @@ public:
         if (!account)
             account = AccountIdentifier::FromTarget(handler);
         if (!account)
+            return false;
+
+        if (handler->HasLowerSecurityAccount(nullptr, account->GetID(), true))
             return false;
 
         if (!realmId)
