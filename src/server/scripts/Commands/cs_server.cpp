@@ -54,76 +54,78 @@ EndScriptData */
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #endif
 
+using namespace Trinity::ChatCommands;
+
 class server_commandscript : public CommandScript
 {
 public:
     server_commandscript() : CommandScript("server_commandscript") { }
 
-    std::vector<ChatCommand> GetCommands() const override
+    ChatCommandTable GetCommands() const override
     {
-        static std::vector<ChatCommand> serverIdleRestartCommandTable =
+        static ChatCommandTable serverIdleRestartCommandTable =
         {
-            { "cancel", rbac::RBAC_PERM_COMMAND_SERVER_IDLERESTART_CANCEL, true, &HandleServerShutDownCancelCommand, "" },
-            { ""   ,    rbac::RBAC_PERM_COMMAND_SERVER_IDLERESTART,        true, &HandleServerIdleRestartCommand,    "" },
+            { "cancel", HandleServerShutDownCancelCommand, rbac::RBAC_PERM_COMMAND_SERVER_IDLERESTART_CANCEL, Console::Yes },
+            { "",       HandleServerIdleRestartCommand,    rbac::RBAC_PERM_COMMAND_SERVER_IDLERESTART,        Console::Yes },
         };
 
-        static std::vector<ChatCommand> serverIdleShutdownCommandTable =
+        static ChatCommandTable serverIdleShutdownCommandTable =
         {
-            { "cancel", rbac::RBAC_PERM_COMMAND_SERVER_IDLESHUTDOWN_CANCEL, true, &HandleServerShutDownCancelCommand, "" },
-            { ""   ,    rbac::RBAC_PERM_COMMAND_SERVER_IDLESHUTDOWN,        true, &HandleServerIdleShutDownCommand,   "" },
+            { "cancel", HandleServerShutDownCancelCommand, rbac::RBAC_PERM_COMMAND_SERVER_IDLESHUTDOWN_CANCEL, Console::Yes },
+            { "",       HandleServerIdleShutDownCommand,   rbac::RBAC_PERM_COMMAND_SERVER_IDLESHUTDOWN,        Console::Yes },
         };
 
-        static std::vector<ChatCommand> serverRestartCommandTable =
+        static ChatCommandTable serverRestartCommandTable =
         {
-            { "cancel", rbac::RBAC_PERM_COMMAND_SERVER_RESTART_CANCEL, true, &HandleServerShutDownCancelCommand, "" },
-            { "force",  rbac::RBAC_PERM_COMMAND_SERVER_RESTART_FORCE,  true, &HandleServerForceRestartCommand,   "" },
-            { ""   ,    rbac::RBAC_PERM_COMMAND_SERVER_RESTART,        true, &HandleServerRestartCommand,        "" },
+            { "cancel", HandleServerShutDownCancelCommand, rbac::RBAC_PERM_COMMAND_SERVER_RESTART_CANCEL, Console::Yes },
+            { "force",  HandleServerForceRestartCommand,   rbac::RBAC_PERM_COMMAND_SERVER_RESTART_FORCE,  Console::Yes },
+            { "",       HandleServerRestartCommand,        rbac::RBAC_PERM_COMMAND_SERVER_RESTART,        Console::Yes },
         };
 
-        static std::vector<ChatCommand> serverShutdownCommandTable =
+        static ChatCommandTable serverShutdownCommandTable =
         {
-            { "cancel", rbac::RBAC_PERM_COMMAND_SERVER_SHUTDOWN_CANCEL, true, &HandleServerShutDownCancelCommand, "" },
-            { "force",  rbac::RBAC_PERM_COMMAND_SERVER_SHUTDOWN_FORCE,  true, &HandleServerForceShutDownCommand,  "" },
-            { ""   ,    rbac::RBAC_PERM_COMMAND_SERVER_SHUTDOWN,        true, &HandleServerShutDownCommand,       "" },
+            { "cancel", HandleServerShutDownCancelCommand, rbac::RBAC_PERM_COMMAND_SERVER_SHUTDOWN_CANCEL, Console::Yes },
+            { "force",  HandleServerForceShutDownCommand,  rbac::RBAC_PERM_COMMAND_SERVER_SHUTDOWN_FORCE,  Console::Yes },
+            { "",       HandleServerShutDownCommand,       rbac::RBAC_PERM_COMMAND_SERVER_SHUTDOWN,        Console::Yes },
         };
 
-        static std::vector<ChatCommand> serverSetCommandTable =
+        static ChatCommandTable serverSetCommandTable =
         {
-            { "loglevel", rbac::RBAC_PERM_COMMAND_SERVER_SET_LOGLEVEL, true, &HandleServerSetLogLevelCommand, "" },
-            { "motd",     rbac::RBAC_PERM_COMMAND_SERVER_SET_MOTD,     true, &HandleServerSetMotdCommand,     "" },
-            { "closed",   rbac::RBAC_PERM_COMMAND_SERVER_SET_CLOSED,   true, &HandleServerSetClosedCommand,   "" },
+            { "loglevel", HandleServerSetLogLevelCommand, rbac::RBAC_PERM_COMMAND_SERVER_SET_LOGLEVEL, Console::Yes },
+            { "motd",     HandleServerSetMotdCommand,     rbac::RBAC_PERM_COMMAND_SERVER_SET_MOTD,     Console::Yes },
+            { "closed",   HandleServerSetClosedCommand,   rbac::RBAC_PERM_COMMAND_SERVER_SET_CLOSED,   Console::Yes },
         };
 
-        static std::vector<ChatCommand> serverCommandTable =
+        static ChatCommandTable serverCommandTable =
         {
-            { "corpses",      rbac::RBAC_PERM_COMMAND_SERVER_CORPSES,      true, &HandleServerCorpsesCommand, "" },
-            { "debug",        rbac::RBAC_PERM_COMMAND_SERVER_DEBUG,        true, &HandleServerDebugCommand,   "" },
-            { "exit",         rbac::RBAC_PERM_COMMAND_SERVER_EXIT,         true, &HandleServerExitCommand,    "" },
-            { "idlerestart",  rbac::RBAC_PERM_COMMAND_SERVER_IDLERESTART,  true, nullptr,                     "", serverIdleRestartCommandTable },
-            { "idleshutdown", rbac::RBAC_PERM_COMMAND_SERVER_IDLESHUTDOWN, true, nullptr,                     "", serverIdleShutdownCommandTable },
-            { "info",         rbac::RBAC_PERM_COMMAND_SERVER_INFO,         true, &HandleServerInfoCommand,    "" },
-            { "motd",         rbac::RBAC_PERM_COMMAND_SERVER_MOTD,         true, &HandleServerMotdCommand,    "" },
-            { "plimit",       rbac::RBAC_PERM_COMMAND_SERVER_PLIMIT,       true, &HandleServerPLimitCommand,  "" },
-            { "restart",      rbac::RBAC_PERM_COMMAND_SERVER_RESTART,      true, nullptr,                     "", serverRestartCommandTable },
-            { "shutdown",     rbac::RBAC_PERM_COMMAND_SERVER_SHUTDOWN,     true, nullptr,                     "", serverShutdownCommandTable },
-            { "set",          rbac::RBAC_PERM_COMMAND_SERVER_SET,          true, nullptr,                     "", serverSetCommandTable },
+            { "corpses",      HandleServerCorpsesCommand, rbac::RBAC_PERM_COMMAND_SERVER_CORPSES, Console::Yes },
+            { "debug",        HandleServerDebugCommand,   rbac::RBAC_PERM_COMMAND_SERVER_DEBUG,   Console::Yes },
+            { "exit",         HandleServerExitCommand,    rbac::RBAC_PERM_COMMAND_SERVER_EXIT,    Console::Yes },
+            { "idlerestart",  serverIdleRestartCommandTable },
+            { "idleshutdown", serverIdleShutdownCommandTable },
+            { "info",         HandleServerInfoCommand,    rbac::RBAC_PERM_COMMAND_SERVER_INFO,    Console::Yes },
+            { "motd",         HandleServerMotdCommand,    rbac::RBAC_PERM_COMMAND_SERVER_MOTD,    Console::Yes },
+            { "plimit",       HandleServerPLimitCommand,  rbac::RBAC_PERM_COMMAND_SERVER_PLIMIT,  Console::Yes },
+            { "restart",      serverRestartCommandTable },
+            { "shutdown",     serverShutdownCommandTable },
+            { "set",          serverSetCommandTable },
         };
 
-        static std::vector<ChatCommand> commandTable =
+        static ChatCommandTable commandTable =
         {
-            { "server", rbac::RBAC_PERM_COMMAND_SERVER, true, nullptr, "", serverCommandTable },
+            { "server", serverCommandTable },
         };
         return commandTable;
     }
 
     // Triggering corpses expire check in world
-    static bool HandleServerCorpsesCommand(ChatHandler* /*handler*/, char const* /*args*/)
+    static bool HandleServerCorpsesCommand(ChatHandler* /*handler*/)
     {
         sWorld->RemoveOldCorpses();
         return true;
     }
 
-    static bool HandleServerDebugCommand(ChatHandler* handler, char const* /*args*/)
+    static bool HandleServerDebugCommand(ChatHandler* handler)
     {
         uint16 worldPort = uint16(sWorld->getIntConfig(CONFIG_PORT_WORLD));
         std::string dbPortOutput;
@@ -253,7 +255,7 @@ public:
         return true;
     }
 
-    static bool HandleServerInfoCommand(ChatHandler* handler, char const* /*args*/)
+    static bool HandleServerInfoCommand(ChatHandler* handler)
     {
         uint32 playersNum           = sWorld->GetPlayerCount();
         uint32 maxPlayersNum        = sWorld->GetMaxPlayerCount();
@@ -276,7 +278,7 @@ public:
         return true;
     }
     // Display the 'Message of the day' for the realm
-    static bool HandleServerMotdCommand(ChatHandler* handler, char const* /*args*/)
+    static bool HandleServerMotdCommand(ChatHandler* handler)
     {
         handler->PSendSysMessage(LANG_MOTD_CURRENT, Motd::GetMotd());
         return true;
@@ -341,7 +343,7 @@ public:
         return true;
     }
 
-    static bool HandleServerShutDownCancelCommand(ChatHandler* handler, char const* /*args*/)
+    static bool HandleServerShutDownCancelCommand(ChatHandler* handler)
     {
         if (uint32 timer = sWorld->ShutdownCancel())
             handler->PSendSysMessage(LANG_SHUTDOWN_CANCELLED, timer);
@@ -390,7 +392,7 @@ public:
     }
 
     // Exit the realm
-    static bool HandleServerExitCommand(ChatHandler* handler, char const* /*args*/)
+    static bool HandleServerExitCommand(ChatHandler* handler)
     {
         handler->SendSysMessage(LANG_COMMAND_EXIT);
         World::StopNow(SHUTDOWN_EXIT_CODE);
@@ -398,32 +400,28 @@ public:
     }
 
     // Define the 'Message of the day' for the realm
-    static bool HandleServerSetMotdCommand(ChatHandler* handler, char const* args)
+    static bool HandleServerSetMotdCommand(ChatHandler* handler, Tail message)
     {
-        Motd::SetMotd(args);
-        handler->PSendSysMessage(LANG_MOTD_NEW, args);
+        Motd::SetMotd(message.data());
+        handler->PSendSysMessage(LANG_MOTD_NEW, message);
         return true;
     }
 
     // Set whether we accept new clients
-    static bool HandleServerSetClosedCommand(ChatHandler* handler, char const* args)
+    static bool HandleServerSetClosedCommand(ChatHandler* handler, bool closed)
     {
-        if (strncmp(args, "on", 3) == 0)
+        if (closed)
         {
             handler->SendSysMessage(LANG_WORLD_CLOSED);
             sWorld->SetClosed(true);
-            return true;
         }
-        else if (strncmp(args, "off", 4) == 0)
+        else
         {
             handler->SendSysMessage(LANG_WORLD_OPENED);
             sWorld->SetClosed(false);
-            return true;
         }
 
-        handler->SendSysMessage(LANG_USE_BOL);
-        handler->SetSentErrorMessage(true);
-        return false;
+        return true;
     }
 
     // Set the level of logging
